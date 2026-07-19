@@ -581,6 +581,10 @@ function nav(page) {
                 <h3>${t('backup_title')}</h3>
                 <p style="color:var(--tx2); margin: 15px 0;">يمكنك سحب نسخة احتياطية من كل مبيعات التطبيق لضمان حفظ البيانات على الكمبيوتر.</p>
                 <button class="btn btn-primary" style="max-width:300px; margin:auto;" onclick="exportExcel()">${t('export_excel')}</button>
+                <br><br><hr style="border-color:var(--glass-border);"><br>
+                <h3 style="color:var(--rd);">إعادة ضبط المصنع (حذف الحسابات)</h3>
+                <p style="color:var(--tx2); margin: 15px 0;">سيتم حذف كل الحسابات والمبيعات من هذا الجهاز للبدء من جديد.</p>
+                <button class="btn btn-danger" style="max-width:300px; margin:auto; background:var(--rd);" onclick="resetApp()">حذف كل البيانات ⚠️</button>
             </div>
         `;
     }
@@ -776,6 +780,13 @@ function emailReport() {
     
     let mailtoLink = `mailto:${ADMIN_EMAILS[0]}?subject=Promoter App Sales Report&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoLink;
+}
+
+function resetApp() {
+    if(confirm('هل أنت متأكد من رغبتك في حذف الحسابات والمبيعات بالكامل للبدء من جديد؟')) {
+        localStorage.clear();
+        window.location.reload();
+    }
 }
 
     </script>
