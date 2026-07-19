@@ -165,8 +165,11 @@ function nav(page) {
     currentPage = page;
     let lis = $('navLinks').querySelectorAll('li');
     lis.forEach(li => li.classList.remove('active'));
-    if(event && event.target && event.target.tagName === 'LI') {
-        event.target.classList.add('active');
+    
+    // Fix for ReferenceError: event is not defined
+    let e = window.event;
+    if(e && e.target && e.target.tagName === 'LI') {
+        e.target.classList.add('active');
     }
     
     let content = '';
