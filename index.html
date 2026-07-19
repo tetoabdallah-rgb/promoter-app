@@ -11,10 +11,7 @@
     <!-- SheetJS for Excel Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Firebase SDK (v8) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <!-- Local Mode: No Firebase -->
     
     <style>
         /* style.css */
@@ -232,26 +229,20 @@ th { color: var(--tx2); }
     <script>
         // js/app.js
 
-// --- Firebase Configuration ---
-const firebaseConfig = {
-    apiKey: "AIzaSyAxXU5MePdVP1OcOyzitl0Jy5jMGrWtTSE",
-    authDomain: "salesproapp-ba56b.firebaseapp.com",
-    projectId: "salesproapp-ba56b",
-    storageBucket: "salesproapp-ba56b.firebasestorage.app",
-    messagingSenderId: "954558106678",
-    appId: "1:954558106678:web:666ce1e645b3c9bbe01c97",
-    measurementId: "G-FPFPWB7VV5"
+// --- LocalDB Helper (No Firebase) ---
+const LocalDB = {
+    get: (collection) => JSON.parse(localStorage.getItem(collection) || '[]'),
+    set: (collection, data) => localStorage.setItem(collection, JSON.stringify(data)),
+    add: (collection, item) => {
+        let data = LocalDB.get(collection);
+        item.id = Date.now().toString() + Math.random().toString().substring(2);
+        item.timestamp = new Date().toISOString();
+        data.push(item);
+        LocalDB.set(collection, data);
+        return item;
+    },
+    getById: (collection, id) => LocalDB.get(collection).find(i => i.id === id)
 };
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
-const db = firebase.firestore();
-const auth = firebase.auth();
-
-db.enablePersistence().catch(err => {
-    console.warn("Offline persistence not enabled", err);
-});
 
 // --- State Variables ---
 let currentUser = null;
@@ -264,8 +255,8 @@ const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 // --- Translation Dictionary ---
 const dict = {
     ar: {
-        login_title: "👤 تسجيل الدخول",
-        login_subtitle: "تطبيق إدارة البروموتر والمبيعات السحابي",
+        login_title: "👤 تسجيل الدخول (محلي بدون نت)",
+        login_subtitle: "تطبيق إدارة البروموتر والمبيعات (LocalStorage)",
         email_ph: "البريد الإلكتروني",
         pass_ph: "كلمة المرور",
         login_btn: "دخول",
@@ -299,8 +290,8 @@ const dict = {
         sales_summary: "ملخص المبيعات (الشركات والفروع)"
     },
     en: {
-        login_title: "👤 Login",
-        login_subtitle: "Cloud Promoter & Sales Management App",
+        login_title: "👤 Login (Local Mode)",
+        login_subtitle: "Promoter & Sales Management App",
         email_ph: "Email Address",
         pass_ph: "Password",
         login_btn: "Login",
@@ -376,36 +367,38 @@ document.addEventListener('DOMContentLoaded', () => {
     $('btnLogin').innerText = t('login_btn');
     $('btnSignup').innerText = t('signup_btn');
     $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
+    
+    checkAuth();
 });
 
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
-        currentUser = user;
-        $('uiName').innerText = user.email.split('@')[0];
+function checkAuth() {
+    let storedUser = localStorage.getItem('currentUser');
+    if (storedUser) {
+        currentUser = JSON.parse(storedUser);
+        $('uiName').innerText = currentUser.email.split('@')[0];
         
-        try {
-            let doc = await db.collection('users').doc(user.uid).get();
-            if (doc.exists) {
-                userData = doc.data();
-                currentRole = userData.role;
-            } else {
-                currentRole = ADMIN_EMAILS.includes(user.email.toLowerCase()) ? 'admin' : 'promoter';
-                userData = {
-                    uid: user.uid,
-                    email: user.email,
-                    role: currentRole,
-                    promoterCode: currentRole === 'promoter' ? 'PRM-' + Math.floor(Math.random()*10000) : 'ADMIN',
-                    branch: 'Main Branch',
-                    company: 'Main Company'
-                };
-                await db.collection('users').doc(user.uid).set(userData);
-            }
-            $('uiRole').innerText = currentRole === 'admin' ? (currentLang==='ar'?'مدير الإدارة 👑':'Admin 👑') : (currentLang==='ar'?'بروموتر 👤':'Promoter 👤');
-            buildNav();
-            showScreen('app-screen');
-        } catch(e) {
-            toast(e.message, 'error');
+        let users = LocalDB.get('users');
+        userData = users.find(u => u.uid === currentUser.uid);
+        
+        if (userData) {
+            currentRole = userData.role;
+        } else {
+            currentRole = ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) ? 'admin' : 'promoter';
+            userData = {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                role: currentRole,
+                promoterCode: currentRole === 'promoter' ? 'PRM-' + Math.floor(Math.random()*10000) : 'ADMIN',
+                branch: 'Main Branch',
+                company: 'Main Company'
+            };
+            users.push(userData);
+            LocalDB.set('users', users);
         }
+        
+        $('uiRole').innerText = currentRole === 'admin' ? (currentLang==='ar'?'مدير الإدارة 👑':'Admin 👑') : (currentLang==='ar'?'بروموتر 👤':'Promoter 👤');
+        buildNav();
+        showScreen('app-screen');
     } else {
         currentUser = null;
         userData = null;
@@ -413,33 +406,60 @@ auth.onAuthStateChanged(async (user) => {
         showScreen('auth-screen');
     }
     $('loader').classList.add('hidden');
-});
+}
 
 // --- Auth ---
 function login() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
     if (!e || !p) return toast('يرجى إدخال البريد وكلمة المرور', 'error');
+    
     $('loader').classList.remove('hidden');
-    auth.signInWithEmailAndPassword(e, p).catch(err => {
-        $('loader').classList.add('hidden');
-        toast(err.message, 'error');
-    });
+    setTimeout(() => {
+        let authUsers = LocalDB.get('auth_users');
+        let user = authUsers.find(u => u.email.toLowerCase() === e.toLowerCase() && u.password === p);
+        
+        if (user) {
+            localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
+            $('authError').innerText = '';
+            checkAuth();
+        } else {
+            $('loader').classList.add('hidden');
+            let msg = currentLang === 'ar' ? 'البريد أو كلمة المرور غير صحيحة.' : 'Invalid email or password.';
+            $('authError').innerText = msg;
+            toast(msg, 'error');
+        }
+    }, 500);
 }
 
 function signup() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
     if (!e || !p) return toast('يرجى إدخال البريد وكلمة المرور', 'error');
+    
     $('loader').classList.remove('hidden');
-    auth.createUserWithEmailAndPassword(e, p).catch(err => {
-        $('loader').classList.add('hidden');
-        toast(err.message, 'error');
-    });
+    setTimeout(() => {
+        let authUsers = LocalDB.get('auth_users');
+        if (authUsers.find(u => u.email.toLowerCase() === e.toLowerCase())) {
+            $('loader').classList.add('hidden');
+            let msg = currentLang === 'ar' ? 'هذا البريد مسجل بالفعل.' : 'Email already registered.';
+            $('authError').innerText = msg;
+            return toast(msg, 'error');
+        }
+        
+        let uid = 'usr_' + Date.now();
+        authUsers.push({uid: uid, email: e, password: p});
+        LocalDB.set('auth_users', authUsers);
+        
+        localStorage.setItem('currentUser', JSON.stringify({uid: uid, email: e}));
+        $('authError').innerText = '';
+        checkAuth();
+    }, 500);
 }
 
 function logout() {
-    auth.signOut();
+    localStorage.removeItem('currentUser');
+    checkAuth();
 }
 
 // --- Navigation ---
@@ -456,7 +476,6 @@ function buildNav() {
     }
     $('navLinks').innerHTML = links;
     
-    // Auto click first
     setTimeout(() => {
         let lis = $('navLinks').querySelectorAll('li');
         if(lis.length > 0) lis[0].click();
@@ -580,7 +599,7 @@ function nav(page) {
 }
 
 // --- Promoter Features ---
-async function submitSale() {
+function submitSale() {
     let c = $('sCode').value.trim();
     let p = $('sPrice').value.trim();
     let d = $('sDate').value;
@@ -590,26 +609,27 @@ async function submitSale() {
     if(!c || !p) return toast('إدخال الكود والسعر إلزامي', 'error');
     
     $('loader').classList.remove('hidden');
-    try {
-        await db.collection('sales').add({
-            uid: currentUser.uid,
-            promoterCode: userData.promoterCode,
-            branch: userData.branch,
-            company: userData.company,
-            itemCode: c,
-            price: Number(p),
-            date: d,
-            time: t_str,
-            description: desc,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        toast('تم الحفظ بنجاح', 'success');
-        $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = '';
-        loadMySales();
-    } catch(err) {
-        toast(err.message, 'error');
-    }
-    $('loader').classList.add('hidden');
+    setTimeout(() => {
+        try {
+            LocalDB.add('sales', {
+                uid: currentUser.uid,
+                promoterCode: userData.promoterCode,
+                branch: userData.branch,
+                company: userData.company,
+                itemCode: c,
+                price: Number(p),
+                date: d,
+                time: t_str,
+                description: desc
+            });
+            toast('تم الحفظ بنجاح', 'success');
+            $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = '';
+            loadMySales();
+        } catch(err) {
+            toast(err.message, 'error');
+        }
+        $('loader').classList.add('hidden');
+    }, 300);
 }
 
 function loadMySales() {
@@ -617,13 +637,13 @@ function loadMySales() {
     if(!tb) return;
     tb.innerHTML = `<tr><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
     
-    db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(20)
-    .onSnapshot(snap => {
-        tb.innerHTML = `<tr><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
-        snap.forEach(doc => {
-            let d = doc.data();
-            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
-        });
+    let sales = LocalDB.get('sales')
+        .filter(s => s.uid === currentUser.uid)
+        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 20);
+        
+    sales.forEach(d => {
+        tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
     });
 }
 
@@ -632,40 +652,50 @@ function markAttendance(slot) {
     let docId = currentUser.uid + "_" + d;
     
     $('loader').classList.remove('hidden');
-    db.collection('attendance').doc(docId).set({
-        uid: currentUser.uid,
-        date: d,
-        [`slot${slot}`]: true,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }, {merge: true}).then(() => {
+    setTimeout(() => {
+        try {
+            let att = LocalDB.get('attendance');
+            let data = att.find(a => a.id === docId);
+            
+            if (!data) {
+                data = { id: docId, uid: currentUser.uid, date: d, slot1: false, slot2: false, timestamp: new Date().toISOString() };
+                att.push(data);
+            }
+            
+            if (slot === 1) data.slot1 = true;
+            if (slot === 2) data.slot2 = true;
+            
+            LocalDB.set('attendance', att);
+            toast('تم تسجيل الحضور', 'success');
+            loadMyAttendance();
+        } catch(err) {
+            toast(err.message, 'error');
+        }
         $('loader').classList.add('hidden');
-        toast('تم تسجيل الحضور', 'success');
-    }).catch(err => {
-        $('loader').classList.add('hidden');
-        toast(err.message, 'error');
-    });
+    }, 300);
 }
 
 function loadMyAttendance() {
     let tb = $('myAttTable');
     if(!tb) return;
     
-    db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10)
-    .onSnapshot(snap => {
-        tb.innerHTML = `<tr><th>${t('sale_date')}</th><th>Slot 1</th><th>Slot 2</th></tr>`;
-        let today = new Date().toISOString().split('T')[0];
+    let att = LocalDB.get('attendance')
+        .filter(a => a.uid === currentUser.uid)
+        .sort((a,b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 10);
         
-        snap.forEach(doc => {
-            let d = doc.data();
-            let s1 = d.slot1 ? '✅' : '❌';
-            let s2 = d.slot2 ? '✅' : '❌';
-            tb.innerHTML += `<tr><td>${d.date}</td><td>${s1}</td><td>${s2}</td></tr>`;
-            
-            if(d.date === today) {
-                if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'تم ✔️'; $('btnAtt1').style.background = 'var(--gn)'; }
-                if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'تم ✔️'; $('btnAtt2').style.background = 'var(--gn)'; }
-            }
-        });
+    tb.innerHTML = `<tr><th>${t('sale_date')}</th><th>Slot 1</th><th>Slot 2</th></tr>`;
+    let today = new Date().toISOString().split('T')[0];
+    
+    att.forEach(d => {
+        let s1 = d.slot1 ? '✅' : '❌';
+        let s2 = d.slot2 ? '✅' : '❌';
+        tb.innerHTML += `<tr><td>${d.date}</td><td>${s1}</td><td>${s2}</td></tr>`;
+        
+        if(d.date === today) {
+            if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'تم ✔️'; $('btnAtt1').style.background = 'var(--gn)'; }
+            if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'تم ✔️'; $('btnAtt2').style.background = 'var(--gn)'; }
+        }
     });
 }
 
@@ -674,38 +704,37 @@ function loadAllSales() {
     let tb = $('allSalesTable');
     if(!tb) return;
     
-    db.collection('sales').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
-        tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter')}</th><th>${t('sale_code')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
-        snap.forEach(doc => {
-            let d = doc.data();
-            tb.innerHTML += `<tr><td>${d.company}</td><td>${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
-        });
+    let sales = LocalDB.get('sales')
+        .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 100);
+        
+    tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter')}</th><th>${t('sale_code')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
+    sales.forEach(d => {
+        tb.innerHTML += `<tr><td>${d.company}</td><td>${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
     });
 }
 
 function loadDashboard() {
-    db.collection('sales').get().then(snap => {
-        let compObj = {};
-        let brObj = {};
-        
-        snap.forEach(doc => {
-            let d = doc.data();
-            compObj[d.company] = (compObj[d.company] || 0) + d.price;
-            brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
-        });
-        
-        let cList = $('companySalesList');
-        if(cList) {
-            cList.innerHTML = '';
-            for(let c in compObj) cList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${c}</span> <strong>${compObj[c]}</strong></li>`;
-        }
-        
-        let bList = $('branchSalesList');
-        if(bList) {
-            bList.innerHTML = '';
-            for(let b in brObj) bList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${b}</span> <strong>${brObj[b]}</strong></li>`;
-        }
+    let sales = LocalDB.get('sales');
+    let compObj = {};
+    let brObj = {};
+    
+    sales.forEach(d => {
+        compObj[d.company] = (compObj[d.company] || 0) + d.price;
+        brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
     });
+    
+    let cList = $('companySalesList');
+    if(cList) {
+        cList.innerHTML = '';
+        for(let c in compObj) cList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${c}</span> <strong>${compObj[c]}</strong></li>`;
+    }
+    
+    let bList = $('branchSalesList');
+    if(bList) {
+        bList.innerHTML = '';
+        for(let b in brObj) bList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${b}</span> <strong>${brObj[b]}</strong></li>`;
+    }
 }
 
 function exportExcel() {
@@ -715,10 +744,10 @@ function exportExcel() {
     }
     
     $('loader').classList.remove('hidden');
-    db.collection('sales').orderBy('timestamp', 'desc').get().then(snap => {
+    setTimeout(() => {
+        let sales = LocalDB.get('sales').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
         let data = [];
-        snap.forEach(doc => {
-            let d = doc.data();
+        sales.forEach(d => {
             data.push({
                 "Company": d.company,
                 "Branch": d.branch,
@@ -736,23 +765,22 @@ function exportExcel() {
         XLSX.utils.book_append_sheet(wb, ws, "Sales");
         XLSX.writeFile(wb, "Promoter_Sales_Backup_" + new Date().toISOString().split('T')[0] + ".xlsx");
         $('loader').classList.add('hidden');
-    });
+    }, 500);
 }
 
 function emailReport() {
-    db.collection('sales').orderBy('timestamp', 'desc').limit(50).get().then(snap => {
-        let body = "Sales Report Summary:\n\n";
-        let total = 0;
-        snap.forEach(doc => {
-            let d = doc.data();
-            body += `- [${d.company}] ${d.branch} | Promoter: ${d.promoterCode} | Item: ${d.itemCode} | Price: ${d.price} | Date: ${d.date}\n`;
-            total += d.price;
-        });
-        body += `\nTotal Sales Value (last 50): ${total}\n`;
-        
-        let mailtoLink = `mailto:${ADMIN_EMAILS[0]}?subject=Promoter App Sales Report&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoLink;
+    let sales = LocalDB.get('sales').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 50);
+    let body = "Sales Report Summary:\n\n";
+    let total = 0;
+    
+    sales.forEach(d => {
+        body += `- [${d.company}] ${d.branch} | Promoter: ${d.promoterCode} | Item: ${d.itemCode} | Price: ${d.price} | Date: ${d.date}\n`;
+        total += d.price;
     });
+    body += `\nTotal Sales Value: ${total}\n`;
+    
+    let mailtoLink = `mailto:${ADMIN_EMAILS[0]}?subject=Promoter App Sales Report&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
 }
 
     </script>
