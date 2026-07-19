@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoter App Cloud</title>
     
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- SheetJS for Excel Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- Local Mode: No Firebase -->
@@ -173,7 +170,6 @@ th { color: var(--tx2); }
     </style>
 </head>
 <body>
-    
     <div class="bg-animated"></div>
     <div id="toast-container"></div>
     
@@ -193,7 +189,7 @@ th { color: var(--tx2); }
                 <button id="btnSignup" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
             </div>
             
-            <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px;"></p>
+            <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
         </div>
     </div>
 
@@ -209,7 +205,6 @@ th { color: var(--tx2); }
             </div>
             
             <ul id="navLinks" class="nav-links"></ul>
-            
             <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">خروج 🚪</button>
         </nav>
 
