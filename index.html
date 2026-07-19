@@ -1,12 +1,23 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoter App Cloud</title>
+    
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- SheetJS for Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Firebase SDK (v8) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
     <style>
-/* style.css */
+        /* style.css */
 :root {
     --bg1: #0f172a;
     --bg2: #1e293b;
@@ -161,27 +172,28 @@ th { color: var(--tx2); }
     #app-screen { flex-direction: column; padding: 10px; }
     .sidebar { width: 100%; }
 }
+
     </style>
 </head>
 <body>
     
-    <!-- Background Animation -->
     <div class="bg-animated"></div>
-
-    <!-- Toast Notifications -->
     <div id="toast-container"></div>
+    
+    <!-- Language Toggle -->
+    <button id="btnLang" onclick="toggleLang()" style="position:fixed; top:20px; left:20px; z-index:9999; background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 15px; border-radius:20px; cursor:pointer; backdrop-filter:blur(10px);">English</button>
 
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
-            <h1 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
-            <p style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
+            <h1 id="loginTitle" style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
+            <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
             <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
             <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
             
             <div class="grid-2">
-                <button class="btn btn-primary" onclick="login()">دخول</button>
-                <button class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
+                <button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button>
+                <button id="btnSignup" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
             </div>
             
             <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px;"></p>
@@ -190,8 +202,6 @@ th { color: var(--tx2); }
 
     <!-- Main Application Screen -->
     <div id="app-screen" class="screen hidden">
-        
-        <!-- Sidebar Navigation -->
         <nav class="sidebar glass-card">
             <div class="user-profile">
                 <div class="avatar">👤</div>
@@ -201,52 +211,141 @@ th { color: var(--tx2); }
                 </div>
             </div>
             
-            <ul id="navLinks" class="nav-links">
-                <!-- Links dynamically populated based on role -->
-            </ul>
+            <ul id="navLinks" class="nav-links"></ul>
             
             <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">خروج 🚪</button>
         </nav>
 
-        <!-- Main Content Area -->
         <main class="main-content">
             <header class="topbar glass-card">
                 <h2 id="pageTitle">لوحة التحكم</h2>
             </header>
-            
-            <div id="pageContent" class="page-container">
-                <!-- Content loads here -->
-            </div>
+            <div id="pageContent" class="page-container"></div>
         </main>
     </div>
 
     <!-- Loader -->
-    <div id="loader" class="screen hidden" style="z-index: 9999; background: rgba(0,0,0,0.8);">
+    <div id="loader" class="screen" style="z-index: 9999; background: rgba(0,0,0,0.8);">
         <div class="spinner"></div>
     </div>
 
-    <!-- Unified JavaScript -->
     <script>
-// --- LocalDB Helper (Replaces Firebase) ---
-const LocalDB = {
-    get: (collection) => JSON.parse(localStorage.getItem(collection) || '[]'),
-    set: (collection, data) => localStorage.setItem(collection, JSON.stringify(data)),
-    add: (collection, item) => {
-        let data = LocalDB.get(collection);
-        item.id = Date.now().toString() + Math.random().toString().substring(2);
-        item.timestamp = new Date().toISOString();
-        data.push(item);
-        LocalDB.set(collection, data);
-        return item;
-    },
-    getById: (collection, id) => LocalDB.get(collection).find(i => i.id === id)
+        // js/app.js
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAxXU5MePdVP1OcOyzitl0Jy5jMGrWtTSE",
+    authDomain: "salesproapp-ba56b.firebaseapp.com",
+    projectId: "salesproapp-ba56b",
+    storageBucket: "salesproapp-ba56b.firebasestorage.app",
+    messagingSenderId: "954558106678",
+    appId: "1:954558106678:web:666ce1e645b3c9bbe01c97",
+    measurementId: "G-FPFPWB7VV5"
 };
 
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+
+db.enablePersistence().catch(err => {
+    console.warn("Offline persistence not enabled", err);
+});
+
+// --- State Variables ---
 let currentUser = null;
-let currentRole = null;
 let userData = null;
+let currentRole = null;
+let currentLang = localStorage.getItem('appLang') || 'ar'; // default arabic
 
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
+
+// --- Translation Dictionary ---
+const dict = {
+    ar: {
+        login_title: "👤 تسجيل الدخول",
+        login_subtitle: "تطبيق إدارة البروموتر والمبيعات السحابي",
+        email_ph: "البريد الإلكتروني",
+        pass_ph: "كلمة المرور",
+        login_btn: "دخول",
+        signup_btn: "إنشاء حساب جديد",
+        logout: "خروج 🚪",
+        admin_dash: "📊 لوحة التحكم الشاملة",
+        admin_sales: "💰 كل المبيعات",
+        admin_users: "👥 إدارة البروموترز",
+        admin_backup: "💾 النسخ الاحتياطي",
+        prm_dash: "🏠 الرئيسية",
+        prm_sales: "➕ إدخال مبيعات",
+        prm_att: "⏱️ الحضور والانصراف",
+        sale_code: "كود الصنف",
+        sale_price: "السعر",
+        sale_date: "التاريخ",
+        sale_time: "الوقت",
+        sale_desc: "الوصف / الملاحظات",
+        save_sale: "حفظ المبيعات 💾",
+        my_sales: "مبيعاتي الأخيرة",
+        att_title: "تسجيل الحضور اليومي",
+        att_sub: "الدوام مقسم إلى فترتين (نصف ساعة لكل فترة)",
+        slot1: "تسجيل حضور (الفترة 1)",
+        slot2: "تسجيل حضور (الفترة 2)",
+        att_history: "سجل الحضور",
+        company: "الشركة",
+        branch: "الفرع",
+        promoter: "البروموتر",
+        export_excel: "تصدير إكسيل 📊",
+        send_email: "إرسال تقرير بالإيميل 📧",
+        backup_title: "النسخ الاحتياطي وقاعدة البيانات",
+        sales_summary: "ملخص المبيعات (الشركات والفروع)"
+    },
+    en: {
+        login_title: "👤 Login",
+        login_subtitle: "Cloud Promoter & Sales Management App",
+        email_ph: "Email Address",
+        pass_ph: "Password",
+        login_btn: "Login",
+        signup_btn: "Create Account",
+        logout: "Logout 🚪",
+        admin_dash: "📊 Dashboard",
+        admin_sales: "💰 All Sales",
+        admin_users: "👥 Promoters Management",
+        admin_backup: "💾 Backup",
+        prm_dash: "🏠 Home",
+        prm_sales: "➕ Add Sales",
+        prm_att: "⏱️ Attendance",
+        sale_code: "Item Code",
+        sale_price: "Price",
+        sale_date: "Date",
+        sale_time: "Time",
+        sale_desc: "Description / Notes",
+        save_sale: "Save Sale 💾",
+        my_sales: "My Recent Sales",
+        att_title: "Daily Attendance",
+        att_sub: "Shift is divided into 2 slots (30 mins each)",
+        slot1: "Mark Attendance (Slot 1)",
+        slot2: "Mark Attendance (Slot 2)",
+        att_history: "Attendance History",
+        company: "Company",
+        branch: "Branch",
+        promoter: "Promoter",
+        export_excel: "Export Excel 📊",
+        send_email: "Email Report 📧",
+        backup_title: "Database Backup",
+        sales_summary: "Sales Summary (Companies & Branches)"
+    }
+};
+
+function t(key) {
+    return dict[currentLang][key] || key;
+}
+
+function toggleLang() {
+    currentLang = currentLang === 'ar' ? 'en' : 'ar';
+    localStorage.setItem('appLang', currentLang);
+    document.documentElement.lang = currentLang;
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    window.location.reload();
+}
 
 // --- Utility Functions ---
 function $(id) { return document.getElementById(id); }
@@ -255,371 +354,408 @@ function showScreen(id) {
     $(id).classList.remove('hidden');
 }
 function toast(msg, type='info') {
-    let t = document.createElement('div');
-    t.className = `glass-card`;
-    t.style.cssText = `background: ${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold;`;
-    t.innerText = msg;
-    $('toast-container').appendChild(t);
+    let t_el = document.createElement('div');
+    t_el.className = `glass-card`;
+    t_el.style.cssText = `background: ${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold;`;
+    t_el.innerText = msg;
+    $('toast-container').appendChild(t_el);
     $('toast-container').style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column;`;
-    setTimeout(() => t.remove(), 3000);
+    setTimeout(() => t_el.remove(), 3000);
 }
 
-// --- Authentication (Local) ---
-function checkAuth() {
-    let storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        $('uiName').innerText = currentUser.email.split('@')[0];
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    document.documentElement.lang = currentLang;
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    
+    // Apply initial translations
+    $('loginTitle').innerText = t('login_title');
+    $('loginSub').innerText = t('login_subtitle');
+    $('authEmail').placeholder = t('email_ph');
+    $('authPass').placeholder = t('pass_ph');
+    $('btnLogin').innerText = t('login_btn');
+    $('btnSignup').innerText = t('signup_btn');
+    $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
+});
+
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        $('uiName').innerText = user.email.split('@')[0];
         
-        let users = LocalDB.get('promoter_users');
-        userData = users.find(u => u.uid === currentUser.uid);
-        
-        if (userData) {
-            currentRole = userData.role;
-        } else {
-            // Fallback for first time if profile wasn't created properly
-            currentRole = ADMIN_EMAILS.includes(currentUser.email.toLowerCase()) ? 'admin' : 'promoter';
-            userData = {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                role: currentRole,
-                promoterCode: currentRole === 'promoter' ? 'PRM-' + Math.floor(Math.random()*10000) : 'ADMIN',
-                branch: 'Main',
-                company: 'Default'
-            };
-            users.push(userData);
-            LocalDB.set('promoter_users', users);
+        try {
+            let doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                userData = doc.data();
+                currentRole = userData.role;
+            } else {
+                currentRole = ADMIN_EMAILS.includes(user.email.toLowerCase()) ? 'admin' : 'promoter';
+                userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    role: currentRole,
+                    promoterCode: currentRole === 'promoter' ? 'PRM-' + Math.floor(Math.random()*10000) : 'ADMIN',
+                    branch: 'Main Branch',
+                    company: 'Main Company'
+                };
+                await db.collection('users').doc(user.uid).set(userData);
+            }
+            $('uiRole').innerText = currentRole === 'admin' ? (currentLang==='ar'?'مدير الإدارة 👑':'Admin 👑') : (currentLang==='ar'?'بروموتر 👤':'Promoter 👤');
+            buildNav();
+            showScreen('app-screen');
+        } catch(e) {
+            toast(e.message, 'error');
         }
-        
-        $('uiRole').innerText = currentRole === 'admin' ? 'مدير الإدارة 👑' : 'بروموتر 👤';
-        buildNav();
-        showScreen('app-screen');
     } else {
         currentUser = null;
+        userData = null;
         currentRole = null;
         showScreen('auth-screen');
     }
-}
+    $('loader').classList.add('hidden');
+});
 
-// Call checkAuth when page loads
-window.addEventListener('DOMContentLoaded', checkAuth);
-
+// --- Auth ---
 function login() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
-    if (!e || !p) { $('authError').innerText = 'يرجى إدخال البريد وكلمة المرور'; return; }
-    
-    $('authError').innerText = 'جاري تسجيل الدخول...';
-    setTimeout(() => {
-        let authUsers = LocalDB.get('auth_users');
-        let user = authUsers.find(u => u.email.toLowerCase() === e.toLowerCase() && u.password === p);
-        
-        if (user) {
-            localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
-            $('authError').innerText = '';
-            checkAuth();
-        } else {
-            $('authError').innerText = 'البريد أو كلمة المرور غير صحيحة. هل تقصد إنشاء حساب جديد؟';
-        }
-    }, 500);
+    if (!e || !p) return toast('يرجى إدخال البريد وكلمة المرور', 'error');
+    $('loader').classList.remove('hidden');
+    auth.signInWithEmailAndPassword(e, p).catch(err => {
+        $('loader').classList.add('hidden');
+        toast(err.message, 'error');
+    });
 }
 
 function signup() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
-    if (!e || !p) { $('authError').innerText = 'يرجى إدخال البريد وكلمة المرور'; return; }
-    
-    $('authError').innerText = 'جاري إنشاء الحساب...';
-    setTimeout(() => {
-        let authUsers = LocalDB.get('auth_users');
-        if (authUsers.find(u => u.email.toLowerCase() === e.toLowerCase())) {
-            $('authError').innerText = 'هذا البريد مسجل بالفعل. يرجى تسجيل الدخول.';
-            return;
-        }
-        
-        let uid = 'usr_' + Date.now();
-        authUsers.push({uid: uid, email: e, password: p});
-        LocalDB.set('auth_users', authUsers);
-        
-        // Create user profile
-        let role = ADMIN_EMAILS.includes(e.toLowerCase()) ? 'admin' : 'promoter';
-        let newUserData = {
-            uid: uid,
-            email: e,
-            role: role,
-            promoterCode: role === 'promoter' ? 'PRM-' + Math.floor(Math.random()*10000) : 'ADMIN',
-            branch: 'Main',
-            company: 'Default'
-        };
-        let profiles = LocalDB.get('promoter_users');
-        profiles.push(newUserData);
-        LocalDB.set('promoter_users', profiles);
-        
-        localStorage.setItem('currentUser', JSON.stringify({uid: uid, email: e}));
-        $('authError').innerText = '';
-        checkAuth();
-    }, 500);
+    if (!e || !p) return toast('يرجى إدخال البريد وكلمة المرور', 'error');
+    $('loader').classList.remove('hidden');
+    auth.createUserWithEmailAndPassword(e, p).catch(err => {
+        $('loader').classList.add('hidden');
+        toast(err.message, 'error');
+    });
 }
 
 function logout() {
-    localStorage.removeItem('currentUser');
-    checkAuth();
+    auth.signOut();
 }
 
-// --- Navigation & Routing ---
-let currentPage = '';
-
+// --- Navigation ---
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        links += `<li onclick="nav('admin_dash')">📊 لوحة التحكم الشاملة</li>`;
-        links += `<li onclick="nav('admin_sales')">💰 كل المبيعات</li>`;
-        links += `<li onclick="nav('admin_users')">👥 إدارة البروموترز</li>`;
+        links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
+        links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
+        links += `<li onclick="nav('admin_backup')">${t('admin_backup')}</li>`;
     } else {
-        links += `<li onclick="nav('promoter_dash')">🏠 الرئيسية</li>`;
-        links += `<li onclick="nav('promoter_sales')">➕ إدخال مبيعات</li>`;
-        links += `<li onclick="nav('promoter_attendance')">⏱️ الحضور والانصراف</li>`;
+        links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
+        links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
+        links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
     }
-    
     $('navLinks').innerHTML = links;
     
-    // Auto navigate
-    let lis = $('navLinks').querySelectorAll('li');
-    if(lis.length > 0) lis[0].click();
+    // Auto click first
+    setTimeout(() => {
+        let lis = $('navLinks').querySelectorAll('li');
+        if(lis.length > 0) lis[0].click();
+    }, 100);
 }
 
 function nav(page) {
-    currentPage = page;
     let lis = $('navLinks').querySelectorAll('li');
     lis.forEach(li => li.classList.remove('active'));
-    
-    // Fix for ReferenceError: event is not defined
     let e = window.event;
-    if(e && e.target && e.target.tagName === 'LI') {
-        e.target.classList.add('active');
-    }
+    if(e && e.target && e.target.tagName === 'LI') e.target.classList.add('active');
     
     let content = '';
     let title = '';
     
     if (page === 'promoter_sales') {
-        title = '➕ إدخال مبيعات جديدة';
+        title = t('prm_sales');
         content = `
             <div class="glass-card">
                 <div class="grid-2">
                     <div class="fg">
-                        <label>كود الصنف</label>
-                        <input type="text" id="sCode" class="input-box" placeholder="مثال: ITEM-123">
+                        <label>${t('sale_code')}</label>
+                        <input type="text" id="sCode" class="input-box" placeholder="ITEM-123">
                     </div>
                     <div class="fg">
-                        <label>السعر</label>
+                        <label>${t('sale_price')}</label>
                         <input type="number" id="sPrice" class="input-box" placeholder="0">
                     </div>
                     <div class="fg">
-                        <label>التاريخ</label>
+                        <label>${t('sale_date')}</label>
                         <input type="date" id="sDate" class="input-box" value="${new Date().toISOString().split('T')[0]}">
                     </div>
                     <div class="fg">
-                        <label>الوقت</label>
+                        <label>${t('sale_time')}</label>
                         <input type="time" id="sTime" class="input-box" value="${new Date().toTimeString().split(' ')[0].substring(0,5)}">
                     </div>
                 </div>
                 <div class="fg">
-                    <label>الوصف / الملاحظات</label>
-                    <input type="text" id="sDesc" class="input-box" placeholder="اكتب تفاصيل البيعة...">
+                    <label>${t('sale_desc')}</label>
+                    <input type="text" id="sDesc" class="input-box" placeholder="...">
                 </div>
-                <button class="btn btn-primary" onclick="submitSale()">حفظ المبيعات محلياً 💾</button>
+                <button class="btn btn-primary" onclick="submitSale()">${t('save_sale')}</button>
             </div>
-            
-            <h3 style="margin-top:20px;">مبيعاتي الأخيرة</h3>
+            <h3 style="margin-top:20px;">${t('my_sales')}</h3>
             <div class="glass-card" style="margin-top:10px; overflow-x:auto;">
                 <table id="mySalesTable">
-                    <tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>
+                    <tr><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>
                 </table>
             </div>
         `;
         setTimeout(loadMySales, 100);
     }
     else if (page === 'promoter_attendance') {
-        title = '⏱️ الحضور والانصراف';
+        title = t('prm_att');
         content = `
             <div class="glass-card" style="text-align:center;">
-                <h3>تسجيل الحضور اليومي</h3>
-                <p style="color:var(--tx2); margin-bottom:15px;">الدوام مقسم إلى فترتين (نصف ساعة لكل فترة)</p>
-                
+                <h3>${t('att_title')}</h3>
+                <p style="color:var(--tx2); margin-bottom:15px;">${t('att_sub')}</p>
                 <div class="grid-2" style="max-width:400px; margin:auto;">
-                    <button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">تسجيل حضور (الفترة 1)</button>
-                    <button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">تسجيل حضور (الفترة 2)</button>
+                    <button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('slot1')}</button>
+                    <button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('slot2')}</button>
                 </div>
-                
-                <div id="attStatus" style="margin-top:20px; font-weight:bold;"></div>
             </div>
-            
             <div class="glass-card" style="margin-top:20px;">
-                <h3>سجل الحضور</h3>
+                <h3>${t('att_history')}</h3>
                 <table id="myAttTable">
-                    <tr><th>التاريخ</th><th>الفترة 1</th><th>الفترة 2</th></tr>
+                    <tr><th>${t('sale_date')}</th><th>Slot 1</th><th>Slot 2</th></tr>
                 </table>
             </div>
         `;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
-        title = '💰 مبيعات كل الفروع والشركات';
+        title = t('admin_sales');
         content = `
             <div class="glass-card" style="margin-bottom:15px; display:flex; gap:10px;">
-                <button class="btn btn-primary" onclick="exportAdminExcel()">تصدير إكسيل 📊</button>
-                <button class="btn btn-danger" onclick="clearLocalData()">مسح كل البيانات 🗑️</button>
+                <button class="btn btn-primary" onclick="exportExcel()">${t('export_excel')}</button>
+                <button class="btn btn-primary" onclick="emailReport()">${t('send_email')}</button>
             </div>
             <div class="glass-card" style="overflow-x:auto;">
                 <table id="allSalesTable">
-                    <tr><th>الشركة</th><th>الفرع</th><th>البروموتر</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>
+                    <tr><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter')}</th><th>${t('sale_code')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>
                 </table>
             </div>
         `;
         setTimeout(loadAllSales, 100);
     }
+    else if (page === 'admin_dash') {
+        title = t('sales_summary');
+        content = `
+            <div class="grid-2">
+                <div class="glass-card">
+                    <h3>المبيعات حسب الشركة (Company Sales)</h3>
+                    <ul id="companySalesList" style="margin-top:10px; padding:0; list-style:none;"></ul>
+                </div>
+                <div class="glass-card">
+                    <h3>المبيعات حسب الفرع (Branch Sales)</h3>
+                    <ul id="branchSalesList" style="margin-top:10px; padding:0; list-style:none;"></ul>
+                </div>
+            </div>
+        `;
+        setTimeout(loadDashboard, 100);
+    }
+    else if (page === 'admin_backup') {
+        title = t('admin_backup');
+        content = `
+            <div class="glass-card" style="text-align:center;">
+                <h3>${t('backup_title')}</h3>
+                <p style="color:var(--tx2); margin: 15px 0;">يمكنك سحب نسخة احتياطية من كل مبيعات التطبيق لضمان حفظ البيانات على الكمبيوتر.</p>
+                <button class="btn btn-primary" style="max-width:300px; margin:auto;" onclick="exportExcel()">${t('export_excel')}</button>
+            </div>
+        `;
+    }
     else {
-        title = 'لوحة التحكم';
-        content = '<div class="glass-card"><p>مرحباً بك في لوحة التحكم.</p></div>';
+        title = t('prm_dash');
+        content = `<div class="glass-card"><p>Welcome / أهلاً بك</p></div>`;
     }
     
     $('pageTitle').innerText = title;
     $('pageContent').innerHTML = content;
 }
 
-// --- Data Operations (LocalDB) ---
-
-function submitSale() {
-    let sCode = $('sCode').value.trim();
-    let sPrice = $('sPrice').value.trim();
-    let sDate = $('sDate').value;
-    let sTime = $('sTime').value;
-    let sDesc = $('sDesc').value.trim();
+// --- Promoter Features ---
+async function submitSale() {
+    let c = $('sCode').value.trim();
+    let p = $('sPrice').value.trim();
+    let d = $('sDate').value;
+    let t_str = $('sTime').value;
+    let desc = $('sDesc').value.trim();
     
-    if(!sCode || !sPrice) { toast('يرجى إدخال الكود والسعر', 'error'); return; }
+    if(!c || !p) return toast('إدخال الكود والسعر إلزامي', 'error');
     
     $('loader').classList.remove('hidden');
-    setTimeout(() => {
-        try {
-            LocalDB.add('promoter_sales', {
-                uid: currentUser.uid,
-                promoterCode: userData.promoterCode,
-                branch: userData.branch,
-                company: userData.company,
-                itemCode: sCode,
-                price: Number(sPrice),
-                date: sDate,
-                time: sTime,
-                description: sDesc
-            });
-            
-            toast('تم حفظ المبيعات بنجاح!', 'success');
-            $('sCode').value = '';
-            $('sPrice').value = '';
-            $('sDesc').value = '';
-            loadMySales();
-        } catch(err) {
-            toast('خطأ: ' + err.message, 'error');
-        }
-        $('loader').classList.add('hidden');
-    }, 300);
+    try {
+        await db.collection('sales').add({
+            uid: currentUser.uid,
+            promoterCode: userData.promoterCode,
+            branch: userData.branch,
+            company: userData.company,
+            itemCode: c,
+            price: Number(p),
+            date: d,
+            time: t_str,
+            description: desc,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        toast('تم الحفظ بنجاح', 'success');
+        $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = '';
+        loadMySales();
+    } catch(err) {
+        toast(err.message, 'error');
+    }
+    $('loader').classList.add('hidden');
 }
 
 function loadMySales() {
     let tb = $('mySalesTable');
     if(!tb) return;
-    tb.innerHTML = '<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>';
+    tb.innerHTML = `<tr><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
     
-    let allSales = LocalDB.get('promoter_sales');
-    let mySales = allSales.filter(s => s.uid === currentUser.uid)
-                          .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
-                          .slice(0, 20);
-                          
-    mySales.forEach(d => {
-        tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
+    db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(20)
+    .onSnapshot(snap => {
+        tb.innerHTML = `<tr><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
+        snap.forEach(doc => {
+            let d = doc.data();
+            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
+        });
     });
 }
 
-function loadAllSales() {
-    let tb = $('allSalesTable');
-    if(!tb) return;
-    tb.innerHTML = '<tr><th>الشركة</th><th>الفرع</th><th>البروموتر</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>';
-    
-    let allSales = LocalDB.get('promoter_sales')
-                          .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
-                          .slice(0, 100);
-                          
-    allSales.forEach(d => {
-        tb.innerHTML += `<tr><td>${d.company}</td><td>${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
-    });
-}
-
-// --- Attendance Operations (LocalDB) ---
-function markAttendance(slotNumber) {
-    let today = new Date().toISOString().split('T')[0];
-    let docId = currentUser.uid + '_' + today;
+function markAttendance(slot) {
+    let d = new Date().toISOString().split('T')[0];
+    let docId = currentUser.uid + "_" + d;
     
     $('loader').classList.remove('hidden');
-    setTimeout(() => {
-        try {
-            let allAtt = LocalDB.get('promoter_attendance');
-            let data = allAtt.find(a => a.id === docId);
-            
-            if (!data) {
-                data = { id: docId, uid: currentUser.uid, date: today, slot1: false, slot2: false };
-                allAtt.push(data);
-            }
-            
-            if (slotNumber === 1) data.slot1 = true;
-            if (slotNumber === 2) data.slot2 = true;
-            
-            LocalDB.set('promoter_attendance', allAtt);
-            toast('تم تسجيل الحضور بنجاح', 'success');
-            loadMyAttendance();
-        } catch(err) {
-            toast('خطأ: ' + err.message, 'error');
-        }
+    db.collection('attendance').doc(docId).set({
+        uid: currentUser.uid,
+        date: d,
+        [`slot${slot}`]: true,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true}).then(() => {
         $('loader').classList.add('hidden');
-    }, 300);
+        toast('تم تسجيل الحضور', 'success');
+    }).catch(err => {
+        $('loader').classList.add('hidden');
+        toast(err.message, 'error');
+    });
 }
 
 function loadMyAttendance() {
     let tb = $('myAttTable');
     if(!tb) return;
-    tb.innerHTML = '<tr><th>التاريخ</th><th>الفترة 1</th><th>الفترة 2</th></tr>';
     
-    let today = new Date().toISOString().split('T')[0];
-    let allAtt = LocalDB.get('promoter_attendance');
-    let myAtt = allAtt.filter(a => a.uid === currentUser.uid)
-                      .sort((a,b) => new Date(b.date) - new Date(a.date))
-                      .slice(0, 10);
-    
-    myAtt.forEach(d => {
-        let s1 = d.slot1 ? '✅' : '❌';
-        let s2 = d.slot2 ? '✅' : '❌';
-        tb.innerHTML += `<tr><td>${d.date}</td><td>${s1}</td><td>${s2}</td></tr>`;
+    db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10)
+    .onSnapshot(snap => {
+        tb.innerHTML = `<tr><th>${t('sale_date')}</th><th>Slot 1</th><th>Slot 2</th></tr>`;
+        let today = new Date().toISOString().split('T')[0];
         
-        // Update buttons if today
-        if(d.date === today) {
-            if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'تم تسجيل الفترة 1'; $('btnAtt1').style.background = 'var(--gn)'; }
-            if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'تم تسجيل الفترة 2'; $('btnAtt2').style.background = 'var(--gn)'; }
+        snap.forEach(doc => {
+            let d = doc.data();
+            let s1 = d.slot1 ? '✅' : '❌';
+            let s2 = d.slot2 ? '✅' : '❌';
+            tb.innerHTML += `<tr><td>${d.date}</td><td>${s1}</td><td>${s2}</td></tr>`;
+            
+            if(d.date === today) {
+                if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'تم ✔️'; $('btnAtt1').style.background = 'var(--gn)'; }
+                if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'تم ✔️'; $('btnAtt2').style.background = 'var(--gn)'; }
+            }
+        });
+    });
+}
+
+// --- Admin Features ---
+function loadAllSales() {
+    let tb = $('allSalesTable');
+    if(!tb) return;
+    
+    db.collection('sales').orderBy('timestamp', 'desc').limit(100).onSnapshot(snap => {
+        tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter')}</th><th>${t('sale_code')}</th><th>${t('sale_price')}</th><th>${t('sale_date')}</th></tr>`;
+        snap.forEach(doc => {
+            let d = doc.data();
+            tb.innerHTML += `<tr><td>${d.company}</td><td>${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
+        });
+    });
+}
+
+function loadDashboard() {
+    db.collection('sales').get().then(snap => {
+        let compObj = {};
+        let brObj = {};
+        
+        snap.forEach(doc => {
+            let d = doc.data();
+            compObj[d.company] = (compObj[d.company] || 0) + d.price;
+            brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
+        });
+        
+        let cList = $('companySalesList');
+        if(cList) {
+            cList.innerHTML = '';
+            for(let c in compObj) cList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${c}</span> <strong>${compObj[c]}</strong></li>`;
+        }
+        
+        let bList = $('branchSalesList');
+        if(bList) {
+            bList.innerHTML = '';
+            for(let b in brObj) bList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${b}</span> <strong>${brObj[b]}</strong></li>`;
         }
     });
 }
 
-// --- Admin Controls ---
-function exportAdminExcel() {
-    toast('هذه الميزة تتطلب مكتبة SheetJS. سيتم إضافتها قريباً.', 'info');
+function exportExcel() {
+    if(typeof XLSX === 'undefined') {
+        toast('المكتبة غير محملة بعد، حاول مرة أخرى.', 'error');
+        return;
+    }
+    
+    $('loader').classList.remove('hidden');
+    db.collection('sales').orderBy('timestamp', 'desc').get().then(snap => {
+        let data = [];
+        snap.forEach(doc => {
+            let d = doc.data();
+            data.push({
+                "Company": d.company,
+                "Branch": d.branch,
+                "Promoter Code": d.promoterCode,
+                "Item Code": d.itemCode,
+                "Description": d.description,
+                "Price": d.price,
+                "Date": d.date,
+                "Time": d.time
+            });
+        });
+        
+        let ws = XLSX.utils.json_to_sheet(data);
+        let wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sales");
+        XLSX.writeFile(wb, "Promoter_Sales_Backup_" + new Date().toISOString().split('T')[0] + ".xlsx");
+        $('loader').classList.add('hidden');
+    });
 }
 
-function clearLocalData() {
-    if(confirm('هل أنت متأكد من مسح كافة البيانات المحفوظة؟ (هذا الإجراء لا يمكن التراجع عنه)')) {
-        localStorage.clear();
-        toast('تم مسح البيانات', 'success');
-        logout();
-    }
+function emailReport() {
+    db.collection('sales').orderBy('timestamp', 'desc').limit(50).get().then(snap => {
+        let body = "Sales Report Summary:\n\n";
+        let total = 0;
+        snap.forEach(doc => {
+            let d = doc.data();
+            body += `- [${d.company}] ${d.branch} | Promoter: ${d.promoterCode} | Item: ${d.itemCode} | Price: ${d.price} | Date: ${d.date}\n`;
+            total += d.price;
+        });
+        body += `\nTotal Sales Value (last 50): ${total}\n`;
+        
+        let mailtoLink = `mailto:${ADMIN_EMAILS[0]}?subject=Promoter App Sales Report&body=${encodeURIComponent(body)}`;
+        window.location.href = mailtoLink;
+    });
 }
+
     </script>
 </body>
 </html>
+
