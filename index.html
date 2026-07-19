@@ -1,12 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoter App Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-/* style.css */
+    <style>/* style.css */
 :root {
     --bg1: #0f172a;
     --bg2: #1e293b;
@@ -164,69 +163,45 @@ th { color: var(--tx2); }
     </style>
 </head>
 <body>
-    
-    <!-- Background Animation -->
     <div class="bg-animated"></div>
-
-    <!-- Toast Notifications -->
     <div id="toast-container"></div>
-
-    <!-- Auth Screen -->
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
-            <h1 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
-            <p style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
-            <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
-            <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
-            
+            <h1 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">ðŸ‘¤ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„</h1>
+            <p style="text-align:center; margin-bottom: 20px; color: var(--tx2);">ØªØ·Ø¨ÙŠÙ‚ Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¨Ø±ÙˆÙ…ÙˆØªØ± ÙˆØ§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø³Ø­Ø§Ø¨ÙŠ</p>
+            <input type="email" id="authEmail" class="input-box" placeholder="Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ">
+            <input type="password" id="authPass" class="input-box" placeholder="ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±">
             <div class="grid-2">
-                <button class="btn btn-primary" onclick="login()">دخول</button>
-                <button class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
+                <button class="btn btn-primary" onclick="login()">Ø¯Ø®ÙˆÙ„</button>
+                <button class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯</button>
             </div>
-            
             <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px;"></p>
         </div>
     </div>
-
-    <!-- Main Application Screen -->
     <div id="app-screen" class="screen hidden">
-        
-        <!-- Sidebar Navigation -->
         <nav class="sidebar glass-card">
             <div class="user-profile">
-                <div class="avatar">👤</div>
+                <div class="avatar">ðŸ‘¤</div>
                 <div class="info">
                     <strong id="uiName">User</strong>
                     <span id="uiRole" class="badge">Role</span>
                 </div>
             </div>
-            
-            <ul id="navLinks" class="nav-links">
-                <!-- Links dynamically populated based on role -->
-            </ul>
-            
-            <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">خروج 🚪</button>
+            <ul id="navLinks" class="nav-links"></ul>
+            <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">Ø®Ø±ÙˆØ¬ ðŸšª</button>
         </nav>
-
-        <!-- Main Content Area -->
         <main class="main-content">
             <header class="topbar glass-card">
-                <h2 id="pageTitle">لوحة التحكم</h2>
+                <h2 id="pageTitle">Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…</h2>
             </header>
-            
-            <div id="pageContent" class="page-container">
-                <!-- Content loads here -->
-            </div>
+            <div id="pageContent" class="page-container"></div>
         </main>
     </div>
-
-    <!-- Loader -->
     <div id="loader" class="screen hidden" style="z-index: 9999; background: rgba(0,0,0,0.8);">
         <div class="spinner"></div>
     </div>
+    <script>// js/app.js
 
-    <!-- Unified JavaScript -->
-    <script>
 // --- LocalDB Helper (Replaces Firebase) ---
 const LocalDB = {
     get: (collection) => JSON.parse(localStorage.getItem(collection) || '[]'),
@@ -256,11 +231,11 @@ function showScreen(id) {
 }
 function toast(msg, type='info') {
     let t = document.createElement('div');
-    t.className = \`glass-card\`;
-    t.style.cssText = \`background: \${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold;\`;
+    t.className = `glass-card`;
+    t.style.cssText = `background: ${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold;`;
     t.innerText = msg;
     $('toast-container').appendChild(t);
-    $('toast-container').style.cssText = \`position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column;\`;
+    $('toast-container').style.cssText = `position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column;`;
     setTimeout(() => t.remove(), 3000);
 }
 
@@ -291,7 +266,7 @@ function checkAuth() {
             LocalDB.set('promoter_users', users);
         }
         
-        $('uiRole').innerText = currentRole === 'admin' ? 'مدير الإدارة 👑' : 'بروموتر 👤';
+        $('uiRole').innerText = currentRole === 'admin' ? 'Ù…Ø¯ÙŠØ± Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© ðŸ‘‘' : 'Ø¨Ø±ÙˆÙ…ÙˆØªØ± ðŸ‘¤';
         buildNav();
         showScreen('app-screen');
     } else {
@@ -307,9 +282,9 @@ window.addEventListener('DOMContentLoaded', checkAuth);
 function login() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
-    if (!e || !p) { $('authError').innerText = 'يرجى إدخال البريد وكلمة المرور'; return; }
+    if (!e || !p) { $('authError').innerText = 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø¨Ø±ÙŠØ¯ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±'; return; }
     
-    $('authError').innerText = 'جاري تسجيل الدخول...';
+    $('authError').innerText = 'Ø¬Ø§Ø±ÙŠ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„...';
     setTimeout(() => {
         let authUsers = LocalDB.get('auth_users');
         let user = authUsers.find(u => u.email.toLowerCase() === e.toLowerCase() && u.password === p);
@@ -319,7 +294,7 @@ function login() {
             $('authError').innerText = '';
             checkAuth();
         } else {
-            $('authError').innerText = 'البريد أو كلمة المرور غير صحيحة. هل تقصد إنشاء حساب جديد؟';
+            $('authError').innerText = 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø£Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ­ÙŠØ­Ø©. Ù‡Ù„ ØªÙ‚ØµØ¯ Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯ØŸ';
         }
     }, 500);
 }
@@ -327,13 +302,13 @@ function login() {
 function signup() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
-    if (!e || !p) { $('authError').innerText = 'يرجى إدخال البريد وكلمة المرور'; return; }
+    if (!e || !p) { $('authError').innerText = 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„Ø¨Ø±ÙŠØ¯ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±'; return; }
     
-    $('authError').innerText = 'جاري إنشاء الحساب...';
+    $('authError').innerText = 'Ø¬Ø§Ø±ÙŠ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨...';
     setTimeout(() => {
         let authUsers = LocalDB.get('auth_users');
         if (authUsers.find(u => u.email.toLowerCase() === e.toLowerCase())) {
-            $('authError').innerText = 'هذا البريد مسجل بالفعل. يرجى تسجيل الدخول.';
+            $('authError').innerText = 'Ù‡Ø°Ø§ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ù…Ø³Ø¬Ù„ Ø¨Ø§Ù„ÙØ¹Ù„. ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„.';
             return;
         }
         
@@ -372,13 +347,13 @@ let currentPage = '';
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        links += \`<li onclick="nav('admin_dash')">📊 لوحة التحكم الشاملة</li>\`;
-        links += \`<li onclick="nav('admin_sales')">💰 كل المبيعات</li>\`;
-        links += \`<li onclick="nav('admin_users')">👥 إدارة البروموترز</li>\`;
+        links += `<li onclick="nav('admin_dash')">ðŸ“Š Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… Ø§Ù„Ø´Ø§Ù…Ù„Ø©</li>`;
+        links += `<li onclick="nav('admin_sales')">ðŸ’° ÙƒÙ„ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª</li>`;
+        links += `<li onclick="nav('admin_users')">ðŸ‘¥ Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¨Ø±ÙˆÙ…ÙˆØªØ±Ø²</li>`;
     } else {
-        links += \`<li onclick="nav('promoter_dash')">🏠 الرئيسية</li>\`;
-        links += \`<li onclick="nav('promoter_sales')">➕ إدخال مبيعات</li>\`;
-        links += \`<li onclick="nav('promoter_attendance')">⏱️ الحضور والانصراف</li>\`;
+        links += `<li onclick="nav('promoter_dash')">ðŸ  Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©</li>`;
+        links += `<li onclick="nav('promoter_sales')">âž• Ø¥Ø¯Ø®Ø§Ù„ Ù…Ø¨ÙŠØ¹Ø§Øª</li>`;
+        links += `<li onclick="nav('promoter_attendance')">â±ï¸ Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù</li>`;
     }
     
     $('navLinks').innerHTML = links;
@@ -403,85 +378,85 @@ function nav(page) {
     let title = '';
     
     if (page === 'promoter_sales') {
-        title = '➕ إدخال مبيعات جديدة';
-        content = \`
+        title = 'âž• Ø¥Ø¯Ø®Ø§Ù„ Ù…Ø¨ÙŠØ¹Ø§Øª Ø¬Ø¯ÙŠØ¯Ø©';
+        content = `
             <div class="glass-card">
                 <div class="grid-2">
                     <div class="fg">
-                        <label>كود الصنف</label>
-                        <input type="text" id="sCode" class="input-box" placeholder="مثال: ITEM-123">
+                        <label>ÙƒÙˆØ¯ Ø§Ù„ØµÙ†Ù</label>
+                        <input type="text" id="sCode" class="input-box" placeholder="Ù…Ø«Ø§Ù„: ITEM-123">
                     </div>
                     <div class="fg">
-                        <label>السعر</label>
+                        <label>Ø§Ù„Ø³Ø¹Ø±</label>
                         <input type="number" id="sPrice" class="input-box" placeholder="0">
                     </div>
                     <div class="fg">
-                        <label>التاريخ</label>
-                        <input type="date" id="sDate" class="input-box" value="\${new Date().toISOString().split('T')[0]}">
+                        <label>Ø§Ù„ØªØ§Ø±ÙŠØ®</label>
+                        <input type="date" id="sDate" class="input-box" value="${new Date().toISOString().split('T')[0]}">
                     </div>
                     <div class="fg">
-                        <label>الوقت</label>
-                        <input type="time" id="sTime" class="input-box" value="\${new Date().toTimeString().split(' ')[0].substring(0,5)}">
+                        <label>Ø§Ù„ÙˆÙ‚Øª</label>
+                        <input type="time" id="sTime" class="input-box" value="${new Date().toTimeString().split(' ')[0].substring(0,5)}">
                     </div>
                 </div>
                 <div class="fg">
-                    <label>الوصف / الملاحظات</label>
-                    <input type="text" id="sDesc" class="input-box" placeholder="اكتب تفاصيل البيعة...">
+                    <label>Ø§Ù„ÙˆØµÙ / Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø§Øª</label>
+                    <input type="text" id="sDesc" class="input-box" placeholder="Ø§ÙƒØªØ¨ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø¨ÙŠØ¹Ø©...">
                 </div>
-                <button class="btn btn-primary" onclick="submitSale()">حفظ المبيعات محلياً 💾</button>
+                <button class="btn btn-primary" onclick="submitSale()">Ø­ÙØ¸ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ù…Ø­Ù„ÙŠØ§Ù‹ ðŸ’¾</button>
             </div>
             
-            <h3 style="margin-top:20px;">مبيعاتي الأخيرة</h3>
+            <h3 style="margin-top:20px;">Ù…Ø¨ÙŠØ¹Ø§ØªÙŠ Ø§Ù„Ø£Ø®ÙŠØ±Ø©</h3>
             <div class="glass-card" style="margin-top:10px; overflow-x:auto;">
                 <table id="mySalesTable">
-                    <tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>
+                    <tr><th>Ø§Ù„ÙƒÙˆØ¯</th><th>Ø§Ù„ÙˆØµÙ</th><th>Ø§Ù„Ø³Ø¹Ø±</th><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th></tr>
                 </table>
             </div>
-        \`;
+        `;
         setTimeout(loadMySales, 100);
     }
     else if (page === 'promoter_attendance') {
-        title = '⏱️ الحضور والانصراف';
-        content = \`
+        title = 'â±ï¸ Ø§Ù„Ø­Ø¶ÙˆØ± ÙˆØ§Ù„Ø§Ù†ØµØ±Ø§Ù';
+        content = `
             <div class="glass-card" style="text-align:center;">
-                <h3>تسجيل الحضور اليومي</h3>
-                <p style="color:var(--tx2); margin-bottom:15px;">الدوام مقسم إلى فترتين (نصف ساعة لكل فترة)</p>
+                <h3>ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø­Ø¶ÙˆØ± Ø§Ù„ÙŠÙˆÙ…ÙŠ</h3>
+                <p style="color:var(--tx2); margin-bottom:15px;">Ø§Ù„Ø¯ÙˆØ§Ù… Ù…Ù‚Ø³Ù… Ø¥Ù„Ù‰ ÙØªØ±ØªÙŠÙ† (Ù†ØµÙ Ø³Ø§Ø¹Ø© Ù„ÙƒÙ„ ÙØªØ±Ø©)</p>
                 
                 <div class="grid-2" style="max-width:400px; margin:auto;">
-                    <button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">تسجيل حضور (الفترة 1)</button>
-                    <button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">تسجيل حضور (الفترة 2)</button>
+                    <button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">ØªØ³Ø¬ÙŠÙ„ Ø­Ø¶ÙˆØ± (Ø§Ù„ÙØªØ±Ø© 1)</button>
+                    <button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">ØªØ³Ø¬ÙŠÙ„ Ø­Ø¶ÙˆØ± (Ø§Ù„ÙØªØ±Ø© 2)</button>
                 </div>
                 
                 <div id="attStatus" style="margin-top:20px; font-weight:bold;"></div>
             </div>
             
             <div class="glass-card" style="margin-top:20px;">
-                <h3>سجل الحضور</h3>
+                <h3>Ø³Ø¬Ù„ Ø§Ù„Ø­Ø¶ÙˆØ±</h3>
                 <table id="myAttTable">
-                    <tr><th>التاريخ</th><th>الفترة 1</th><th>الفترة 2</th></tr>
+                    <tr><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th><th>Ø§Ù„ÙØªØ±Ø© 1</th><th>Ø§Ù„ÙØªØ±Ø© 2</th></tr>
                 </table>
             </div>
-        \`;
+        `;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
-        title = '💰 مبيعات كل الفروع والشركات';
-        content = \`
+        title = 'ðŸ’° Ù…Ø¨ÙŠØ¹Ø§Øª ÙƒÙ„ Ø§Ù„ÙØ±ÙˆØ¹ ÙˆØ§Ù„Ø´Ø±ÙƒØ§Øª';
+        content = `
             <div class="glass-card" style="margin-bottom:15px; display:flex; gap:10px;">
-                <button class="btn btn-primary" onclick="exportAdminExcel()">تصدير إكسيل 📊</button>
-                <button class="btn btn-danger" onclick="clearLocalData()">مسح كل البيانات 🗑️</button>
+                <button class="btn btn-primary" onclick="exportAdminExcel()">ØªØµØ¯ÙŠØ± Ø¥ÙƒØ³ÙŠÙ„ ðŸ“Š</button>
+                <button class="btn btn-danger" onclick="clearLocalData()">Ù…Ø³Ø­ ÙƒÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª ðŸ—‘ï¸</button>
             </div>
             <div class="glass-card" style="overflow-x:auto;">
                 <table id="allSalesTable">
-                    <tr><th>الشركة</th><th>الفرع</th><th>البروموتر</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>
+                    <tr><th>Ø§Ù„Ø´Ø±ÙƒØ©</th><th>Ø§Ù„ÙØ±Ø¹</th><th>Ø§Ù„Ø¨Ø±ÙˆÙ…ÙˆØªØ±</th><th>Ø§Ù„ÙƒÙˆØ¯</th><th>Ø§Ù„ÙˆØµÙ</th><th>Ø§Ù„Ø³Ø¹Ø±</th><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th></tr>
                 </table>
             </div>
-        \`;
+        `;
         setTimeout(loadAllSales, 100);
     }
     else {
-        title = 'لوحة التحكم';
-        content = '<div class="glass-card"><p>مرحباً بك في لوحة التحكم.</p></div>';
+        title = 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…';
+        content = '<div class="glass-card"><p>Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ ÙÙŠ Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ….</p></div>';
     }
     
     $('pageTitle').innerText = title;
@@ -497,7 +472,7 @@ function submitSale() {
     let sTime = $('sTime').value;
     let sDesc = $('sDesc').value.trim();
     
-    if(!sCode || !sPrice) { toast('يرجى إدخال الكود والسعر', 'error'); return; }
+    if(!sCode || !sPrice) { toast('ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø§Ù„ÙƒÙˆØ¯ ÙˆØ§Ù„Ø³Ø¹Ø±', 'error'); return; }
     
     $('loader').classList.remove('hidden');
     setTimeout(() => {
@@ -514,13 +489,13 @@ function submitSale() {
                 description: sDesc
             });
             
-            toast('تم حفظ المبيعات بنجاح!', 'success');
+            toast('ØªÙ… Ø­ÙØ¸ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø¨Ù†Ø¬Ø§Ø­!', 'success');
             $('sCode').value = '';
             $('sPrice').value = '';
             $('sDesc').value = '';
             loadMySales();
         } catch(err) {
-            toast('خطأ: ' + err.message, 'error');
+            toast('Ø®Ø·Ø£: ' + err.message, 'error');
         }
         $('loader').classList.add('hidden');
     }, 300);
@@ -529,7 +504,7 @@ function submitSale() {
 function loadMySales() {
     let tb = $('mySalesTable');
     if(!tb) return;
-    tb.innerHTML = '<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>';
+    tb.innerHTML = '<tr><th>Ø§Ù„ÙƒÙˆØ¯</th><th>Ø§Ù„ÙˆØµÙ</th><th>Ø§Ù„Ø³Ø¹Ø±</th><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th></tr>';
     
     let allSales = LocalDB.get('promoter_sales');
     let mySales = allSales.filter(s => s.uid === currentUser.uid)
@@ -537,21 +512,21 @@ function loadMySales() {
                           .slice(0, 20);
                           
     mySales.forEach(d => {
-        tb.innerHTML += \`<tr><td>\${d.itemCode}</td><td>\${d.description}</td><td>\${d.price}</td><td>\${d.date} \${d.time}</td></tr>\`;
+        tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
     });
 }
 
 function loadAllSales() {
     let tb = $('allSalesTable');
     if(!tb) return;
-    tb.innerHTML = '<tr><th>الشركة</th><th>الفرع</th><th>البروموتر</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>التاريخ</th></tr>';
+    tb.innerHTML = '<tr><th>Ø§Ù„Ø´Ø±ÙƒØ©</th><th>Ø§Ù„ÙØ±Ø¹</th><th>Ø§Ù„Ø¨Ø±ÙˆÙ…ÙˆØªØ±</th><th>Ø§Ù„ÙƒÙˆØ¯</th><th>Ø§Ù„ÙˆØµÙ</th><th>Ø§Ù„Ø³Ø¹Ø±</th><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th></tr>';
     
     let allSales = LocalDB.get('promoter_sales')
                           .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
                           .slice(0, 100);
                           
     allSales.forEach(d => {
-        tb.innerHTML += \`<tr><td>\${d.company}</td><td>\${d.branch}</td><td>\${d.promoterCode}</td><td>\${d.itemCode}</td><td>\${d.description}</td><td>\${d.price}</td><td>\${d.date} \${d.time}</td></tr>\`;
+        tb.innerHTML += `<tr><td>${d.company}</td><td>${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${d.date} ${d.time}</td></tr>`;
     });
 }
 
@@ -575,10 +550,10 @@ function markAttendance(slotNumber) {
             if (slotNumber === 2) data.slot2 = true;
             
             LocalDB.set('promoter_attendance', allAtt);
-            toast('تم تسجيل الحضور بنجاح', 'success');
+            toast('ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø­Ø¶ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­', 'success');
             loadMyAttendance();
         } catch(err) {
-            toast('خطأ: ' + err.message, 'error');
+            toast('Ø®Ø·Ø£: ' + err.message, 'error');
         }
         $('loader').classList.add('hidden');
     }, 300);
@@ -587,7 +562,7 @@ function markAttendance(slotNumber) {
 function loadMyAttendance() {
     let tb = $('myAttTable');
     if(!tb) return;
-    tb.innerHTML = '<tr><th>التاريخ</th><th>الفترة 1</th><th>الفترة 2</th></tr>';
+    tb.innerHTML = '<tr><th>Ø§Ù„ØªØ§Ø±ÙŠØ®</th><th>Ø§Ù„ÙØªØ±Ø© 1</th><th>Ø§Ù„ÙØªØ±Ø© 2</th></tr>';
     
     let today = new Date().toISOString().split('T')[0];
     let allAtt = LocalDB.get('promoter_attendance');
@@ -596,27 +571,27 @@ function loadMyAttendance() {
                       .slice(0, 10);
     
     myAtt.forEach(d => {
-        let s1 = d.slot1 ? '✅' : '❌';
-        let s2 = d.slot2 ? '✅' : '❌';
-        tb.innerHTML += \`<tr><td>\${d.date}</td><td>\${s1}</td><td>\${s2}</td></tr>\`;
+        let s1 = d.slot1 ? 'âœ…' : 'âŒ';
+        let s2 = d.slot2 ? 'âœ…' : 'âŒ';
+        tb.innerHTML += `<tr><td>${d.date}</td><td>${s1}</td><td>${s2}</td></tr>`;
         
         // Update buttons if today
         if(d.date === today) {
-            if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'تم تسجيل الفترة 1'; $('btnAtt1').style.background = 'var(--gn)'; }
-            if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'تم تسجيل الفترة 2'; $('btnAtt2').style.background = 'var(--gn)'; }
+            if(d.slot1) { $('btnAtt1').disabled = true; $('btnAtt1').innerText = 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ÙØªØ±Ø© 1'; $('btnAtt1').style.background = 'var(--gn)'; }
+            if(d.slot2) { $('btnAtt2').disabled = true; $('btnAtt2').innerText = 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„ÙØªØ±Ø© 2'; $('btnAtt2').style.background = 'var(--gn)'; }
         }
     });
 }
 
 // --- Admin Controls ---
 function exportAdminExcel() {
-    toast('هذه الميزة تتطلب مكتبة SheetJS. سيتم إضافتها قريباً.', 'info');
+    toast('Ù‡Ø°Ù‡ Ø§Ù„Ù…ÙŠØ²Ø© ØªØªØ·Ù„Ø¨ Ù…ÙƒØªØ¨Ø© SheetJS. Ø³ÙŠØªÙ… Ø¥Ø¶Ø§ÙØªÙ‡Ø§ Ù‚Ø±ÙŠØ¨Ø§Ù‹.', 'info');
 }
 
 function clearLocalData() {
-    if(confirm('هل أنت متأكد من مسح كافة البيانات المحفوظة؟ (هذا الإجراء لا يمكن التراجع عنه)')) {
+    if(confirm('Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ù…Ø³Ø­ ÙƒØ§ÙØ© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø­ÙÙˆØ¸Ø©ØŸ (Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡)')) {
         localStorage.clear();
-        toast('تم مسح البيانات', 'success');
+        toast('ØªÙ… Ù…Ø³Ø­ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª', 'success');
         logout();
     }
 }
