@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoter App Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase removed -->
+</head>
+<body>
+    
+    <!-- Background Animation -->
+    <div class="bg-animated"></div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Auth Screen -->
+    <div id="auth-screen" class="screen">
+        <div class="glass-card auth-box">
+            <h1 style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
+            <p style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
+            <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
+            <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
+            
+            <div class="grid-2">
+                <button class="btn btn-primary" onclick="login()">دخول</button>
+                <button class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
+            </div>
+            
+            <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <!-- Main Application Screen -->
+    <div id="app-screen" class="screen hidden">
+        
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar glass-card">
+            <div class="user-profile">
+                <div class="avatar">👤</div>
+                <div class="info">
+                    <strong id="uiName">User</strong>
+                    <span id="uiRole" class="badge">Role</span>
+                </div>
+            </div>
+            
+            <ul id="navLinks" class="nav-links">
+                <!-- Links dynamically populated based on role -->
+            </ul>
+            
+            <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">خروج 🚪</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="topbar glass-card">
+                <h2 id="pageTitle">لوحة التحكم</h2>
+            </header>
+            
+            <div id="pageContent" class="page-container">
+                <!-- Content loads here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="screen hidden" style="z-index: 9999; background: rgba(0,0,0,0.8);">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Local DB -->
+    <script src="js/app.js"></script>
+</body>
+</html>
