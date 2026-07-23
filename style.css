@@ -1,4 +1,3 @@
-/* style.css */
 :root {
     --bg1: #0f172a;
     --bg2: #1e293b;
@@ -82,10 +81,13 @@ body {
     font-weight: bold;
     transition: 0.3s;
     width: 100%;
+    display: inline-block;
+    text-align: center;
 }
 .btn-primary { background: var(--am); color: #fff; }
 .btn-primary:hover { opacity: 0.9; }
 .btn-danger { background: var(--rd); color: #fff; }
+.btn-success { background: var(--gn); color: #fff; }
 
 /* App Layout */
 #app-screen {
@@ -148,6 +150,22 @@ body {
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-border); }
 th { color: var(--tx2); }
+
+/* Loader Spinner */
+.spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top: 4px solid var(--am);
+    width: 40px;
+    height: 40px;
+    -webkit-animation: spin 1s linear infinite; /* Safari */
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 @media (max-width: 768px) {
     #app-screen { flex-direction: column; padding: 10px; }
