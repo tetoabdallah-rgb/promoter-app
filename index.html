@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -7,6 +7,10 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Firebase SDKs (Compat for script tag usage) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="js/app.js" defer></script>
     
     <!-- Local Mode: No Firebase -->
     
@@ -179,14 +183,17 @@ th { color: var(--tx2); }
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
-            <h1 id="loginTitle" style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
+                <button id="tabPromoter" class="btn" style="background:var(--am); color:white;" onclick="switchLogin('promoter')">👤 بروموتر</button>
+                <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">👑 إدارة</button>
+            </div>
+            <h1 id="loginTitle" style="text-align:center; font-size: 1.8rem; margin-bottom: 20px;">تسجيل الدخول</h1>
             <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
             <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
             <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
             
-            <div class="grid-2">
+            <div>
                 <button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button>
-                <button id="btnSignup" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
             </div>
             
             <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
@@ -236,7 +243,12 @@ const LocalDB = {
         LocalDB.set(collection, data);
         return item;
     },
-    getById: (collection, id) => LocalDB.get(collection).find(i => i.id === id)
+    getById: (collection, id) => LocalDB.get(collection).find(i => i.id === id),
+    deleteById: (collection, id) => {
+        let data = LocalDB.get(collection);
+        data = data.filter(i => i.id !== id);
+        LocalDB.set(collection, data);
+    }
 };
 
 // --- State Variables ---
@@ -244,6 +256,7 @@ let currentUser = null;
 let userData = null;
 let currentRole = null;
 let currentLang = localStorage.getItem('appLang') || 'ar'; // default arabic
+let editingUserUid = null;
 
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 
@@ -260,6 +273,7 @@ const dict = {
         admin_dash: "📊 لوحة التحكم الشاملة",
         admin_sales: "💰 كل المبيعات",
         admin_users: "👥 إدارة البروموترز",
+        admin_products: "📦 إدارة الشركات والمنتجات",
         admin_backup: "💾 النسخ الاحتياطي",
         prm_dash: "🏠 الرئيسية",
         prm_sales: "➕ إدخال مبيعات",
@@ -282,7 +296,14 @@ const dict = {
         export_excel: "تصدير إكسيل 📊",
         send_email: "إرسال تقرير بالإيميل 📧",
         backup_title: "النسخ الاحتياطي وقاعدة البيانات",
-        sales_summary: "ملخص المبيعات (الشركات والفروع)"
+        sales_summary: "ملخص المبيعات (الشركات والفروع)",
+        add_user: "إضافة بروموتر جديد",
+        user_role: "الصلاحية",
+        promoter_code: "كود البروموتر",
+        delete: "حذف",
+        upload_excel: "رفع ملف إكسيل للمنتجات",
+        select_company: "اختر الشركة",
+        top_products: "أكثر المنتجات مبيعاً"
     },
     en: {
         login_title: "👤 Login (Local Mode)",
@@ -295,6 +316,7 @@ const dict = {
         admin_dash: "📊 Dashboard",
         admin_sales: "💰 All Sales",
         admin_users: "👥 Promoters Management",
+        admin_products: "📦 Companies & Products",
         admin_backup: "💾 Backup",
         prm_dash: "🏠 Home",
         prm_sales: "➕ Add Sales",
@@ -317,7 +339,14 @@ const dict = {
         export_excel: "Export Excel 📊",
         send_email: "Email Report 📧",
         backup_title: "Database Backup",
-        sales_summary: "Sales Summary (Companies & Branches)"
+        sales_summary: "Sales Summary (Companies & Branches)",
+        add_user: "Add New Promoter",
+        user_role: "Role",
+        promoter_code: "Promoter Code",
+        delete: "Delete",
+        upload_excel: "Upload Products Excel",
+        select_company: "Select Company",
+        top_products: "Top Selling Products"
     }
 };
 
@@ -354,13 +383,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.lang = currentLang;
     document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
     
+    // Seed admin if not exists
+    let authUsers = LocalDB.get('auth_users');
+    let adminEmail = 'tetoabdallah@gmail.com';
+    if (!authUsers.find(u => u.email.toLowerCase() === adminEmail)) {
+        authUsers.push({uid: 'admin_root', email: adminEmail, password: 'admin'});
+        LocalDB.set('auth_users', authUsers);
+        
+        let users = LocalDB.get('users');
+        if (!users.find(u => u.email.toLowerCase() === adminEmail)) {
+            users.push({
+                uid: 'admin_root',
+                email: adminEmail,
+                role: 'admin',
+                promoterCode: 'ADMIN',
+                branch: 'Main Branch',
+                company: 'Main Company'
+            });
+            LocalDB.set('users', users);
+        }
+    }
+
     // Apply initial translations
     $('loginTitle').innerText = t('login_title');
     $('loginSub').innerText = t('login_subtitle');
     $('authEmail').placeholder = t('email_ph');
     $('authPass').placeholder = t('pass_ph');
     $('btnLogin').innerText = t('login_btn');
-    $('btnSignup').innerText = t('signup_btn');
     $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
     
     checkAuth();
@@ -404,6 +453,21 @@ function checkAuth() {
 }
 
 // --- Auth ---
+let loginMode = 'promoter';
+
+function switchLogin(mode) {
+    loginMode = mode;
+    if(mode === 'promoter') {
+        $('tabPromoter').style.background = 'var(--am)';
+        $('tabAdmin').style.background = 'rgba(255,255,255,0.1)';
+        $('loginTitle').innerText = currentLang === 'ar' ? '👤 دخول البروموتر' : '👤 Promoter Login';
+    } else {
+        $('tabAdmin').style.background = 'var(--am)';
+        $('tabPromoter').style.background = 'rgba(255,255,255,0.1)';
+        $('loginTitle').innerText = currentLang === 'ar' ? '👑 دخول الإدارة' : '👑 Admin Login';
+    }
+}
+
 function login() {
     let e = $('authEmail').value.trim();
     let p = $('authPass').value.trim();
@@ -415,8 +479,27 @@ function login() {
         let user = authUsers.find(u => u.email.toLowerCase() === e.toLowerCase() && u.password === p);
         
         if (user) {
+            let profile = LocalDB.get('users').find(x => x.uid === user.uid);
+            let isAdmin = (profile && profile.role === 'admin') || ADMIN_EMAILS.includes(e.toLowerCase());
+            
+            if (loginMode === 'admin' && !isAdmin) {
+                $('loader').classList.add('hidden');
+                let msg = currentLang === 'ar' ? 'غير مصرح لك بالدخول من واجهة الإدارة.' : 'Not authorized for Admin portal.';
+                $('authError').innerText = msg;
+                $('authError').style.display = 'block';
+                return toast(msg, 'error');
+            }
+            if (loginMode === 'promoter' && isAdmin) {
+                $('loader').classList.add('hidden');
+                let msg = currentLang === 'ar' ? 'يرجى الدخول من واجهة الإدارة الخاصة بك.' : 'Please use the Admin login tab.';
+                $('authError').innerText = msg;
+                $('authError').style.display = 'block';
+                return toast(msg, 'error');
+            }
+
             localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
             $('authError').innerText = '';
+            $('authError').style.display = 'none';
             checkAuth();
         } else {
             $('loader').classList.add('hidden');
@@ -424,31 +507,6 @@ function login() {
             $('authError').innerText = msg;
             toast(msg, 'error');
         }
-    }, 500);
-}
-
-function signup() {
-    let e = $('authEmail').value.trim();
-    let p = $('authPass').value.trim();
-    if (!e || !p) return toast('يرجى إدخال البريد وكلمة المرور', 'error');
-    
-    $('loader').classList.remove('hidden');
-    setTimeout(() => {
-        let authUsers = LocalDB.get('auth_users');
-        if (authUsers.find(u => u.email.toLowerCase() === e.toLowerCase())) {
-            $('loader').classList.add('hidden');
-            let msg = currentLang === 'ar' ? 'هذا البريد مسجل بالفعل.' : 'Email already registered.';
-            $('authError').innerText = msg;
-            return toast(msg, 'error');
-        }
-        
-        let uid = 'usr_' + Date.now();
-        authUsers.push({uid: uid, email: e, password: p});
-        LocalDB.set('auth_users', authUsers);
-        
-        localStorage.setItem('currentUser', JSON.stringify({uid: uid, email: e}));
-        $('authError').innerText = '';
-        checkAuth();
     }, 500);
 }
 
@@ -463,6 +521,8 @@ function buildNav() {
     if (currentRole === 'admin') {
         links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
         links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
+        links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
+        links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
         links += `<li onclick="nav('admin_backup')">${t('admin_backup')}</li>`;
     } else {
         links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
@@ -493,11 +553,13 @@ function nav(page) {
                 <div class="grid-2">
                     <div class="fg">
                         <label>${t('sale_code')}</label>
-                        <input type="text" id="sCode" class="input-box" placeholder="ITEM-123">
+                        <select id="sCode" class="input-box" onchange="autoFillProductDetails()">
+                            <option value="">${currentLang==='ar'?'اختر الصنف':'Select Item'}</option>
+                        </select>
                     </div>
                     <div class="fg">
                         <label>${t('sale_price')}</label>
-                        <input type="number" id="sPrice" class="input-box" placeholder="0">
+                        <input type="number" id="sPrice" class="input-box" placeholder="0" readonly style="background: rgba(255,255,255,0.02);">
                     </div>
                     <div class="fg">
                         <label>${t('sale_date')}</label>
@@ -510,7 +572,7 @@ function nav(page) {
                 </div>
                 <div class="fg">
                     <label>${t('sale_desc')}</label>
-                    <input type="text" id="sDesc" class="input-box" placeholder="...">
+                    <input type="text" id="sDesc" class="input-box" placeholder="..." readonly style="background: rgba(255,255,255,0.02);">
                 </div>
                 <button class="btn btn-primary" onclick="submitSale()">${t('save_sale')}</button>
             </div>
@@ -521,7 +583,7 @@ function nav(page) {
                 </table>
             </div>
         `;
-        setTimeout(loadMySales, 100);
+        setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
@@ -563,16 +625,94 @@ function nav(page) {
         content = `
             <div class="grid-2">
                 <div class="glass-card">
-                    <h3>المبيعات حسب الشركة (Company Sales)</h3>
+                    <h3>المبيعات حسب الشركة</h3>
                     <ul id="companySalesList" style="margin-top:10px; padding:0; list-style:none;"></ul>
                 </div>
                 <div class="glass-card">
-                    <h3>المبيعات حسب الفرع (Branch Sales)</h3>
+                    <h3>المبيعات حسب الفرع</h3>
                     <ul id="branchSalesList" style="margin-top:10px; padding:0; list-style:none;"></ul>
                 </div>
             </div>
+            <div class="glass-card" style="margin-top: 20px;">
+                <h3>${t('top_products')}</h3>
+                <div id="topProductsContainer" class="grid-3" style="margin-top:10px;"></div>
+            </div>
         `;
         setTimeout(loadDashboard, 100);
+    }
+    else if (page === 'admin_users') {
+        title = t('admin_users');
+        content = `
+            <div class="glass-card" style="margin-bottom: 20px;">
+                <h3 id="formUserTitle">${t('add_user')}</h3>
+                <div class="grid-3" style="margin-top:10px;">
+                    <div class="fg">
+                        <label>الصلاحية (Role)</label>
+                        <select id="nuRole" class="input-box">
+                            <option value="promoter">بروموتر</option>
+                            <option value="admin">مدير إدارة (Admin)</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label>${t('email_ph')}</label>
+                        <input type="email" id="nuEmail" class="input-box" placeholder="test@test.com">
+                    </div>
+                    <div class="fg">
+                        <label>${t('pass_ph')}</label>
+                        <input type="password" id="nuPass" class="input-box" placeholder="123456">
+                    </div>
+                    <div class="fg">
+                        <label>${t('company')}</label>
+                        <input type="text" id="nuCompany" class="input-box" placeholder="Company Name">
+                    </div>
+                    <div class="fg">
+                        <label>${t('branch')}</label>
+                        <input type="text" id="nuBranch" class="input-box" placeholder="Branch Name">
+                    </div>
+                    <div class="fg">
+                        <label>${t('promoter_code')}</label>
+                        <input type="text" id="nuCode" class="input-box" placeholder="PRM-001">
+                    </div>
+                    <div class="fg" style="grid-column: 1 / -1; display: flex; flex-direction: row; gap: 10px;">
+                        <button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">إضافة ➕</button>
+                        <button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">إلغاء ✖️</button>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-card" style="overflow-x:auto;">
+                <table id="usersTable">
+                    <tr><th>Role</th><th>Email</th><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter_code')}</th><th>Action</th></tr>
+                </table>
+            </div>
+        `;
+        setTimeout(loadAdminUsers, 100);
+    }
+    else if (page === 'admin_products') {
+        title = t('admin_products');
+        content = `
+            <div class="glass-card" style="margin-bottom: 20px;">
+                <h3>${t('upload_excel')}</h3>
+                <p style="color:var(--tx2); font-size:0.9rem; margin-bottom:10px;">Excel columns must be: Code, Description, Price (or similar data format).</p>
+                <div class="grid-2">
+                    <div class="fg">
+                        <label>${t('company')}</label>
+                        <input type="text" id="prodCompany" class="input-box" placeholder="Company Name">
+                    </div>
+                    <div class="fg">
+                        <label>Excel File (.xlsx)</label>
+                        <input type="file" id="prodFile" class="input-box" accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 10px;" onclick="uploadProductsExcel()">رفع البيانات 📤</button>
+            </div>
+            <div class="glass-card" style="overflow-x:auto;">
+                <h3>المنتجات المسجلة</h3>
+                <table id="productsTable" style="margin-top:10px;">
+                    <tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>Action</th></tr>
+                </table>
+            </div>
+        `;
+        setTimeout(loadAdminProducts, 100);
     }
     else if (page === 'admin_backup') {
         title = t('admin_backup');
@@ -598,14 +738,38 @@ function nav(page) {
 }
 
 // --- Promoter Features ---
+function initPromoterSales() {
+    let prods = LocalDB.get('products').filter(p => p.company === userData.company);
+    let select = $('sCode');
+    if(select) {
+        prods.forEach(p => {
+            select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`;
+        });
+    }
+    loadMySales();
+}
+
+function autoFillProductDetails() {
+    let code = $('sCode').value;
+    let prods = LocalDB.get('products').filter(p => p.company === userData.company);
+    let prod = prods.find(p => p.itemCode === code);
+    if(prod) {
+        $('sPrice').value = prod.price;
+        $('sDesc').value = prod.description;
+    } else {
+        $('sPrice').value = '';
+        $('sDesc').value = '';
+    }
+}
+
 function submitSale() {
-    let c = $('sCode').value.trim();
-    let p = $('sPrice').value.trim();
+    let c = $('sCode').value;
+    let p = $('sPrice').value;
     let d = $('sDate').value;
     let t_str = $('sTime').value;
-    let desc = $('sDesc').value.trim();
+    let desc = $('sDesc').value;
     
-    if(!c || !p) return toast('إدخال الكود والسعر إلزامي', 'error');
+    if(!c || !p) return toast('يرجى اختيار الصنف', 'error');
     
     $('loader').classList.remove('hidden');
     setTimeout(() => {
@@ -717,10 +881,14 @@ function loadDashboard() {
     let sales = LocalDB.get('sales');
     let compObj = {};
     let brObj = {};
+    let prodObj = {}; // For top products per company
     
     sales.forEach(d => {
         compObj[d.company] = (compObj[d.company] || 0) + d.price;
         brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
+        
+        if(!prodObj[d.company]) prodObj[d.company] = {};
+        prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + d.price;
     });
     
     let cList = $('companySalesList');
@@ -734,6 +902,262 @@ function loadDashboard() {
         bList.innerHTML = '';
         for(let b in brObj) bList.innerHTML += `<li style="padding:10px; border-bottom:1px solid var(--glass-border); display:flex; justify-content:space-between;"><span>${b}</span> <strong>${brObj[b]}</strong></li>`;
     }
+    
+    let tpCont = $('topProductsContainer');
+    if(tpCont) {
+        tpCont.innerHTML = '';
+        for(let c in prodObj) {
+            let sortedProds = Object.entries(prodObj[c]).sort((a,b) => b[1] - a[1]).slice(0, 5); // top 5
+            let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; padding-bottom:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
+            tpCont.innerHTML += `
+                <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; border:1px solid var(--glass-border);">
+                    <h4 style="color:var(--am); margin-bottom:10px;">${c}</h4>
+                    <ul style="list-style:none; padding:0;">${prodsHtml}</ul>
+                </div>
+            `;
+        }
+    }
+}
+
+function adminAddUser() {
+    let e = $('nuEmail').value.trim();
+    let p = $('nuPass').value.trim();
+    let comp = $('nuCompany').value.trim();
+    let br = $('nuBranch').value.trim();
+    let code = $('nuCode').value.trim();
+    let r = $('nuRole').value;
+    
+    if(!e || !p) return toast('يرجى تعبئة البريد وكلمة المرور', 'error');
+    if(r === 'promoter' && (!comp || !br || !code)) return toast('يرجى تعبئة بيانات الشركة للبروموتر', 'error');
+    
+    let authUsers = LocalDB.get('auth_users');
+    if (authUsers.find(u => u.email.toLowerCase() === e.toLowerCase())) {
+        return toast('هذا البريد مسجل بالفعل', 'error');
+    }
+    
+    let uid = 'usr_' + Date.now();
+    authUsers.push({uid: uid, email: e, password: p});
+    LocalDB.set('auth_users', authUsers);
+    
+    let users = LocalDB.get('users');
+    users.push({
+        uid: uid,
+        email: e,
+        role: r,
+        promoterCode: code || 'ADMIN',
+        branch: br || 'All Branches',
+        company: comp || 'All Companies'
+    });
+    LocalDB.set('users', users);
+    
+    toast('تم إضافة الحساب بنجاح', 'success');
+    $('nuEmail').value = ''; $('nuPass').value = ''; $('nuCompany').value = ''; $('nuBranch').value = ''; $('nuCode').value = ''; $('nuRole').value = 'promoter';
+    loadAdminUsers();
+}
+
+function loadAdminUsers() {
+    let tb = $('usersTable');
+    if(!tb) return;
+    
+    let users = LocalDB.get('users');
+    tb.innerHTML = `<tr><th>Role</th><th>Email</th><th>${t('company')}</th><th>${t('branch')}</th><th>${t('promoter_code')}</th><th>Action</th></tr>`;
+    users.forEach(u => {
+        let roleBadge = u.role === 'admin' ? '👑 مدير' : '👤 بروموتر';
+        let actionBtns = '';
+        if(u.email.toLowerCase() === ADMIN_EMAILS[0].toLowerCase()) {
+            actionBtns = `<button class="btn btn-primary" style="padding:5px 10px; font-size:0.8rem;" onclick="editUser('${u.uid}')">تعديل ✏️</button>`;
+        } else {
+            actionBtns = `
+                <button class="btn btn-primary" style="padding:5px 10px; font-size:0.8rem; margin-left:5px;" onclick="editUser('${u.uid}')">تعديل ✏️</button>
+                <button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteUser('${u.uid}')">${t('delete')}</button>
+            `;
+        }
+        
+        tb.innerHTML += `<tr>
+            <td>${roleBadge}</td>
+            <td>${u.email}</td>
+            <td>${u.company || '-'}</td>
+            <td>${u.branch || '-'}</td>
+            <td>${u.promoterCode || '-'}</td>
+            <td>${actionBtns}</td>
+        </tr>`;
+    });
+}
+
+function editUser(uid) {
+    let users = LocalDB.get('users');
+    let authUsers = LocalDB.get('auth_users');
+    
+    let u = users.find(x => x.uid === uid);
+    let au = authUsers.find(x => x.uid === uid);
+    
+    if(!u || !au) return;
+    
+    editingUserUid = uid;
+    
+    $('nuEmail').value = u.email;
+    $('nuPass').value = au.password;
+    $('nuCompany').value = u.company;
+    $('nuBranch').value = u.branch;
+    $('nuCode').value = u.promoterCode;
+    $('nuRole').value = u.role || 'promoter';
+    
+    $('formUserTitle').innerText = currentLang === 'ar' ? 'تعديل بيانات الحساب' : 'Edit Account';
+    $('btnUserAction').innerText = currentLang === 'ar' ? 'حفظ التعديل 💾' : 'Save 💾';
+    $('btnUserAction').onclick = adminUpdateUser;
+    $('btnUserCancel').classList.remove('hidden');
+    
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function cancelEditUser() {
+    editingUserUid = null;
+    $('nuEmail').value = '';
+    $('nuPass').value = '';
+    $('nuCompany').value = '';
+    $('nuBranch').value = '';
+    $('nuCode').value = '';
+    $('nuRole').value = 'promoter';
+    
+    $('formUserTitle').innerText = t('add_user');
+    $('btnUserAction').innerText = currentLang === 'ar' ? 'إضافة ➕' : 'Add ➕';
+    $('btnUserAction').onclick = adminAddUser;
+    $('btnUserCancel').classList.add('hidden');
+}
+
+function adminUpdateUser() {
+    let e = $('nuEmail').value.trim();
+    let p = $('nuPass').value.trim();
+    let comp = $('nuCompany').value.trim();
+    let br = $('nuBranch').value.trim();
+    let code = $('nuCode').value.trim();
+    let r = $('nuRole').value;
+    
+    if(!e || !p) return toast('يرجى تعبئة البريد وكلمة المرور', 'error');
+    if(r === 'promoter' && (!comp || !br || !code)) return toast('يرجى تعبئة بيانات الشركة للبروموتر', 'error');
+    
+    let authUsers = LocalDB.get('auth_users');
+    let auIndex = authUsers.findIndex(u => u.uid === editingUserUid);
+    
+    let existingAuth = authUsers.find(u => u.email.toLowerCase() === e.toLowerCase() && u.uid !== editingUserUid);
+    if(existingAuth) return toast(currentLang === 'ar' ? 'هذا البريد مسجل لمستخدم آخر' : 'Email used by another user', 'error');
+    
+    if(auIndex > -1) {
+        authUsers[auIndex].email = e;
+        authUsers[auIndex].password = p;
+        LocalDB.set('auth_users', authUsers);
+    }
+    
+    let users = LocalDB.get('users');
+    let uIndex = users.findIndex(u => u.uid === editingUserUid);
+    if(uIndex > -1) {
+        users[uIndex].email = e;
+        users[uIndex].role = r;
+        users[uIndex].company = comp;
+        users[uIndex].branch = br;
+        users[uIndex].promoterCode = code;
+        LocalDB.set('users', users);
+    }
+    
+    toast(currentLang === 'ar' ? 'تم التعديل بنجاح' : 'Updated successfully', 'success');
+    cancelEditUser();
+    loadAdminUsers();
+}
+
+function deleteUser(uid) {
+    if(!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+    
+    let authUsers = LocalDB.get('auth_users').filter(u => u.uid !== uid);
+    LocalDB.set('auth_users', authUsers);
+    
+    let users = LocalDB.get('users').filter(u => u.uid !== uid);
+    LocalDB.set('users', users);
+    
+    toast('تم الحذف', 'success');
+    loadAdminUsers();
+}
+
+function uploadProductsExcel() {
+    let comp = $('prodCompany').value.trim();
+    let fileInput = $('prodFile');
+    
+    if(!comp) return toast('يرجى إدخال اسم الشركة', 'error');
+    if(!fileInput.files.length) return toast('يرجى اختيار ملف إكسيل', 'error');
+    
+    if(typeof XLSX === 'undefined') return toast('المكتبة غير محملة بعد، يرجى المحاولة لاحقاً', 'error');
+    
+    $('loader').classList.remove('hidden');
+    let file = fileInput.files[0];
+    let reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            let data = new Uint8Array(e.target.result);
+            let workbook = XLSX.read(data, {type: 'array'});
+            let firstSheetName = workbook.SheetNames[0];
+            let worksheet = workbook.Sheets[firstSheetName];
+            
+            // Convert to JSON array
+            let json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+            if(json.length < 2) throw new Error("الملف فارغ أو لا يحتوي على بيانات");
+            
+            let prods = LocalDB.get('products');
+            let addedCount = 0;
+            
+            // Assuming order: Code, Description, Price
+            for(let i = 1; i < json.length; i++) {
+                let row = json[i];
+                if(row.length >= 3 && row[0]) {
+                    prods.push({
+                        id: Date.now().toString() + Math.random().toString().substring(2),
+                        company: comp,
+                        itemCode: String(row[0]).trim(),
+                        description: String(row[1]).trim(),
+                        price: Number(row[2]) || 0,
+                        timestamp: new Date().toISOString()
+                    });
+                    addedCount++;
+                }
+            }
+            LocalDB.set('products', prods);
+            toast(`تم رفع ${addedCount} منتج بنجاح لشركة ${comp}`, 'success');
+            $('prodCompany').value = '';
+            fileInput.value = '';
+            loadAdminProducts();
+        } catch(err) {
+            toast('حدث خطأ أثناء قراءة الملف: ' + err.message, 'error');
+        }
+        $('loader').classList.add('hidden');
+    };
+    reader.onerror = function() {
+        toast('حدث خطأ في قراءة الملف', 'error');
+        $('loader').classList.add('hidden');
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function loadAdminProducts() {
+    let tb = $('productsTable');
+    if(!tb) return;
+    
+    let prods = LocalDB.get('products').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 100);
+    tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>Action</th></tr>`;
+    prods.forEach(p => {
+        tb.innerHTML += `<tr>
+            <td>${p.company}</td>
+            <td>${p.itemCode}</td>
+            <td>${p.description}</td>
+            <td>${p.price}</td>
+            <td><button class="btn btn-danger" style="padding:5px 10px; font-size:0.8rem;" onclick="deleteProduct('${p.id}')">${t('delete')}</button></td>
+        </tr>`;
+    });
+}
+
+function deleteProduct(id) {
+    if(!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+    LocalDB.deleteById('products', id);
+    toast('تم الحذف', 'success');
+    loadAdminProducts();
 }
 
 function exportExcel() {
