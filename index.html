@@ -5,25 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Promoter Pro</title>
     
+    <!-- ERROR LOGGER -->
+    <script>
+        window.onerror = function(msg, url, line) {
+            alert("Error: " + msg + "\nLine: " + line);
+            document.getElementById('loader').classList.add('hidden');
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            alert("Promise Error: " + (event.reason ? event.reason.message : "Unknown"));
+        });
+    </script>
+
     <!-- Auto-Clear old caches to guarantee fresh updates -->
     <script>
-        const APP_VERSION = 'v2.0';
-        if(localStorage.getItem('app_version') !== APP_VERSION) {
-            localStorage.clear();
-            if('caches' in window) {
-                caches.keys().then(names => {
-                    for (let name of names) caches.delete(name);
-                });
+        try {
+            const APP_VERSION = 'v2.1';
+            if(localStorage.getItem('app_version') !== APP_VERSION) {
+                localStorage.clear();
+                if('caches' in window) {
+                    caches.keys().then(names => {
+                        for (let name of names) caches.delete(name);
+                    });
+                }
+                localStorage.setItem('app_version', APP_VERSION);
+                window.location.href = window.location.pathname + "?v=" + Date.now();
             }
-            localStorage.setItem('app_version', APP_VERSION);
-            window.location.reload(true);
-        }
+        } catch(e) {}
     </script>
 
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1f6feb">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3214/3214746.png">
-
+    
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- External Libraries -->
@@ -36,51 +48,20 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     
     <style>
-:root {
-    --bg1: #0f172a;
-    --bg2: #1e293b;
-    --tx1: #f8fafc;
-    --tx2: #cbd5e1;
-    --am: #3b82f6; /* Blue Accent */
-    --gn: #10b981; /* Green */
-    --rd: #ef4444; /* Red */
-    --glass-bg: rgba(30, 41, 59, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.1);
-}
-
+:root { --bg1: #0f172a; --bg2: #1e293b; --tx1: #f8fafc; --tx2: #cbd5e1; --am: #3b82f6; --gn: #10b981; --rd: #ef4444; --glass-bg: rgba(30, 41, 59, 0.6); --glass-border: rgba(255, 255, 255, 0.1); }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-
 body { background-color: var(--bg1); color: var(--tx1); min-height: 100vh; overflow-x: hidden; }
-
-.bg-animated {
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
-    background: linear-gradient(120deg, #0f172a, #1e1b4b, #0f172a);
-    background-size: 200% 200%; animation: gradientBG 15s ease infinite;
-}
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; }
-}
-
-.glass-card {
-    background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
+.bg-animated { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: linear-gradient(120deg, #0f172a, #1e1b4b, #0f172a); background-size: 200% 200%; animation: gradientBG 15s ease infinite; }
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.glass-card { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 .screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 10; }
 .hidden { display: none !important; }
-
 .auth-box { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
-
-.input-box {
-    width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.05); color: var(--tx1); font-size: 1rem; outline: none; transition: 0.3s;
-}
+.input-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--tx1); font-size: 1rem; outline: none; transition: 0.3s; }
 .input-box:focus { border-color: var(--am); }
-
 .btn { padding: 12px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; text-align: center; display: inline-block; }
 .btn-primary { background: var(--am); color: #fff; } .btn-primary:hover { opacity: 0.9; }
 .btn-danger { background: var(--rd); color: #fff; } .btn-success { background: var(--gn); color: #fff; }
-
 #app-screen { display: flex; flex-direction: row; justify-content: flex-start; align-items: stretch; padding: 20px; gap: 20px; }
 .sidebar { width: 250px; display: flex; flex-direction: column; }
 .user-profile { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
@@ -89,31 +70,23 @@ body { background-color: var(--bg1); color: var(--tx1); min-height: 100vh; overf
 .nav-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 .nav-links li { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
 .nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.1); border-right: 4px solid var(--am); }
-
 .main-content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
 .topbar { padding: 15px; } .page-container { flex: 1; overflow-y: auto; }
-
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
 .fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
 .fg label { font-size: 0.9rem; color: var(--tx2); }
-
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-border); } th { color: var(--tx2); }
-
-.spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--am);
-    width: 40px; height: 40px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite;
-}
+.spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--am); width: 40px; height: 40px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
 @media (max-width: 768px) { #app-screen { flex-direction: column; padding: 10px; } .sidebar { width: 100%; } }
     </style>
     
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed (Normal if missing file)'));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW fail'));
             });
         }
     </script>
@@ -122,7 +95,7 @@ th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-
     <div class="bg-animated"></div>
     <div id="toast-container"></div>
     
-    <button id="btnLang" onclick="toggleLang()" style="position:fixed; top:20px; left:20px; z-index:9999; background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 15px; border-radius:20px; cursor:pointer; backdrop-filter:blur(10px);">English</button>
+    <button id="btnLang" onclick="toggleLang()" style="position:fixed; top:20px; left:20px; z-index:9999; background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 15px; border-radius:20px; cursor:pointer;">English</button>
 
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
@@ -162,30 +135,17 @@ th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-
     <div id="loader" class="screen" style="z-index: 9999; background: rgba(0,0,0,0.8);"><div class="spinner"></div></div>
 
     <script>
-// --- Firebase Config & Initialization ---
-const firebaseConfig = {
-  apiKey: "AIzaSyBx9HhOL7ZDmp9c1Trmuc0syg23rT85zWw",
-  authDomain: "promoter-app-c2a18.firebaseapp.com",
-  projectId: "promoter-app-c2a18",
-  storageBucket: "promoter-app-c2a18.firebasestorage.app",
-  messagingSenderId: "926632289614",
-  appId: "1:926632289614:web:2d1cf4407eaef3bfe4aa1f"
-};
-
+const firebaseConfig = { apiKey: "AIzaSyBx9HhOL7ZDmp9c1Trmuc0syg23rT85zWw", authDomain: "promoter-app-c2a18.firebaseapp.com", projectId: "promoter-app-c2a18", storageBucket: "promoter-app-c2a18.firebasestorage.app", messagingSenderId: "926632289614", appId: "1:926632289614:web:2d1cf4407eaef3bfe4aa1f" };
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Enable Offline Persistence
-db.enablePersistence({synchronizeTabs:true}).catch(function(err) {
-    console.warn("Offline persistence error:", err.code);
-});
+try {
+    db.enablePersistence({synchronizeTabs:true}).catch(function(err) { console.warn("Offline error:", err.code); });
+} catch(e) {}
 
-// --- State Variables ---
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
-
-// --- Translation Dictionary ---
 const dict = {
     ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف" },
     en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete" }
@@ -197,34 +157,34 @@ function $(id) { return document.getElementById(id); }
 function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden')); $(id).classList.remove('hidden'); }
 function toast(msg, type='info') {
     let el = document.createElement('div'); el.className = 'glass-card';
-    el.style.cssText = \`background: \${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold; font-size:0.9rem;\`;
+    el.style.cssText = `background: ${type==='error'?'var(--rd)':'var(--gn)'}; color: #fff; margin-bottom: 10px; padding: 10px; border-radius: 8px; font-weight: bold; font-size:0.9rem;`;
     el.innerText = msg; $('toast-container').appendChild(el);
-    $('toast-container').style.cssText = \`position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column;\`;
+    $('toast-container').style.cssText = `position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column;`;
     setTimeout(() => el.remove(), 3500);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.documentElement.lang = currentLang; document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-    let adminEmail = 'tetoabdallah@gmail.com';
-    db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get().then(snap => {
-        if (snap.empty) {
-            db.collection('auth_users').doc('admin_root').set({uid: 'admin_root', email: adminEmail, password: 'admin'});
-            db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main' });
-        }
-    });
-    $('loginTitle').innerText = t('login_title'); $('loginSub').innerText = t('login_subtitle');
-    $('authEmail').placeholder = t('email_ph'); $('authPass').placeholder = t('pass_ph');
-    $('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
-    checkAuth();
-});
+// REMOVED DOMContentLoaded to ensure it runs immediately
+document.documentElement.lang = currentLang; document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+let adminEmail = 'tetoabdallah@gmail.com';
+db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get().then(snap => {
+    if (snap.empty) {
+        db.collection('auth_users').doc('admin_root').set({uid: 'admin_root', email: adminEmail, password: 'admin'});
+        db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main' });
+    }
+}).catch(e => console.log(e));
+
+$('loginTitle').innerText = t('login_title'); $('loginSub').innerText = t('login_subtitle');
+$('authEmail').placeholder = t('email_ph'); $('authPass').placeholder = t('pass_ph');
+$('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
+
+checkAuth();
 
 async function checkAuth() {
-    let storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-        try {
+    try {
+        let storedUser = localStorage.getItem('currentUser');
+        if (storedUser) {
             currentUser = JSON.parse(storedUser);
             if (!currentUser || !currentUser.uid) throw new Error("Invalid user object");
-            
             $('uiName').innerText = currentUser.email.split('@')[0];
             let docSnap = await db.collection('users').doc(currentUser.uid).get();
             if (docSnap.exists) {
@@ -236,12 +196,14 @@ async function checkAuth() {
             }
             $('uiRole').innerText = currentRole === 'admin' ? '👑 Admin' : '👤 Promoter';
             buildNav(); showScreen('app-screen');
-        } catch(e) {
-            console.error("Auth parsing error:", e);
-            localStorage.removeItem('currentUser');
+        } else {
             showScreen('auth-screen');
         }
-    } else { showScreen('auth-screen'); }
+    } catch(e) {
+        console.error("Auth error:", e);
+        localStorage.removeItem('currentUser');
+        showScreen('auth-screen');
+    }
     $('loader').classList.add('hidden');
 }
 
@@ -282,14 +244,14 @@ function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        links += \`<li onclick="nav('admin_dash')">\${t('admin_dash')}</li>\`;
-        links += \`<li onclick="nav('admin_sales')">\${t('admin_sales')}</li>\`;
-        links += \`<li onclick="nav('admin_users')">\${t('admin_users')}</li>\`;
-        links += \`<li onclick="nav('admin_products')">\${t('admin_products')}</li>\`;
+        links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
+        links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
+        links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
+        links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
     } else {
-        links += \`<li onclick="nav('promoter_dash')">\${t('prm_dash')}</li>\`;
-        links += \`<li onclick="nav('promoter_sales')">\${t('prm_sales')}</li>\`;
-        links += \`<li onclick="nav('promoter_attendance')">\${t('prm_att')}</li>\`;
+        links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
+        links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
+        links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
     }
     $('navLinks').innerHTML = links;
     setTimeout(() => { let lis = $('navLinks').querySelectorAll('li'); if(lis.length > 0) lis[0].click(); }, 100);
@@ -300,92 +262,39 @@ function nav(page) {
     let e = window.event; if(e && e.target && e.target.tagName === 'LI') e.target.classList.add('active');
     
     let content = '', title = '';
-    
     if (page === 'promoter_dash') {
         title = t('prm_dash');
-        content = \`
-            <div class="glass-card" style="margin-bottom:20px; background:linear-gradient(45deg, var(--am), #1e1b4b);">
-                <h3 style="color:#fff; margin-bottom:15px;">مرحباً بك، \${userData.email.split('@')[0]} 👋</h3>
-                <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#ccc;">التارجت الشهري:</span><strong style="color:#fff;" id="prmTargetVal">0</strong></div>
-                    <div style="width:100%; height:15px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div id="prmTargetBar" style="width:0%; height:100%; background:var(--gn); transition:0.5s;"></div></div>
-                    <div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:#ccc;">المبيعات الحالية: <strong style="color:#fff;" id="prmSalesVal">0</strong></span><span style="color:#ccc;">العمولة المستحقة: <strong style="color:var(--gn);" id="prmCommVal">0</strong></span></div>
-                </div>
-            </div>\`;
+        content = `<div class="glass-card" style="margin-bottom:20px; background:linear-gradient(45deg, var(--am), #1e1b4b);"><h3 style="color:#fff; margin-bottom:15px;">مرحباً بك، ${userData.email.split('@')[0]} 👋</h3><div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#ccc;">التارجت الشهري:</span><strong style="color:#fff;" id="prmTargetVal">0</strong></div><div style="width:100%; height:15px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div id="prmTargetBar" style="width:0%; height:100%; background:var(--gn); transition:0.5s;"></div></div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:#ccc;">المبيعات الحالية: <strong style="color:#fff;" id="prmSalesVal">0</strong></span><span style="color:#ccc;">العمولة المستحقة: <strong style="color:var(--gn);" id="prmCommVal">0</strong></span></div></div></div>`;
         setTimeout(loadPromoterProgress, 100);
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = \`
-            <div class="glass-card">
-                <div class="grid-2">
-                    <div class="fg"><label>\${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div>
-                    <div class="fg"><label>\${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div>
-                    <div class="fg"><label>صورة الفاتورة (اختياري)</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div>
-                    <div class="fg"><label>\${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div>
-                </div>
-                <button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">حفظ المبيعات 💾</button>
-            </div>
-            <div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);">
-                <h4 style="color:var(--gn); margin-bottom:10px;">تم الحفظ بنجاح!</h4><button class="btn btn-success" id="btnShareWA">مشاركة الفاتورة عبر واتساب 💬</button>
-            </div>
-            <h3 style="margin-top:20px;">مبيعاتي الأخيرة</h3><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>\`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>صورة الفاتورة (اختياري)</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">حفظ المبيعات 💾</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">تم الحفظ بنجاح!</h4><button class="btn btn-success" id="btnShareWA">مشاركة الفاتورة عبر واتساب 💬</button></div><h3 style="margin-top:20px;">مبيعاتي الأخيرة</h3><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = \`
-            <div class="glass-card" style="text-align:center;">
-                <h3>تسجيل الحضور اليومي</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.</p>
-                <div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">الفترة الأولى</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">الفترة الثانية</button></div>
-                <div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div>
-            </div><div class="glass-card" style="margin-top:20px;"><table id="myAttTable"></table></div>\`;
+        content = `<div class="glass-card" style="text-align:center;"><h3>تسجيل الحضور اليومي</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.</p><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">الفترة الأولى</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">الفترة الثانية</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="margin-top:20px;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
         title = t('admin_sales');
-        content = \`<div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>\`;
+        content = `<div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
         setTimeout(loadAllSales, 100);
     }
     else if (page === 'admin_dash') {
         title = t('admin_dash');
-        content = \`
-            <div class="grid-2">
-                <div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الشركة</h4><canvas id="companyChart"></canvas></div>
-                <div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الفرع</h4><canvas id="branchChart"></canvas></div>
-            </div>
-            <div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">أكثر المنتجات مبيعاً</h3><div id="topProductsContainer" class="grid-3"></div></div>\`;
+        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الشركة</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الفرع</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">أكثر المنتجات مبيعاً</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
     else if (page === 'admin_users') {
         title = t('admin_users');
-        content = \`
-            <div class="glass-card" style="margin-bottom: 20px;">
-                <h3 id="formUserTitle">إضافة حساب جديد</h3>
-                <div class="grid-3" style="margin-top:15px;">
-                    <div class="fg"><label>البريد</label><input type="email" id="nuEmail" class="input-box"></div>
-                    <div class="fg"><label>كلمة المرور</label><input type="text" id="nuPass" class="input-box"></div>
-                    <div class="fg"><label>الصلاحية</label><select id="nuRole" class="input-box"><option value="promoter">بروموتر</option><option value="admin">مدير</option></select></div>
-                    <div class="fg"><label>الشركة</label><input type="text" id="nuCompany" class="input-box"></div>
-                    <div class="fg"><label>الفرع</label><input type="text" id="nuBranch" class="input-box"></div>
-                    <div class="fg"><label>كود البروموتر</label><input type="text" id="nuCode" class="input-box"></div>
-                    <div class="fg"><label>التارجت (شهري)</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div>
-                    <div class="fg"><label>نسبة العمولة (%)</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div>
-                    <div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;">
-                        <button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">إضافة ➕</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">إلغاء ✖️</button>
-                    </div>
-                </div>
-            </div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>\`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة حساب جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>البريد</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>كلمة المرور</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>الصلاحية</label><select id="nuRole" class="input-box"><option value="promoter">بروموتر</option><option value="admin">مدير</option></select></div><div class="fg"><label>الشركة</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>الفرع</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>كود البروموتر</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>التارجت (شهري)</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>نسبة العمولة (%)</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">إضافة ➕</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">إلغاء ✖️</button></div></div></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
         setTimeout(loadAdminUsers, 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
-        content = \`
-            <div class="glass-card" style="margin-bottom: 20px;">
-                <h3>رفع المنتجات (Excel)</h3>
-                <div class="grid-2" style="margin-top:10px;"><div class="fg"><label>الشركة</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>ملف إكسيل (.xlsx)</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div>
-                <button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">رفع 📤</button>
-            </div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>\`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>رفع المنتجات (Excel)</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>الشركة</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>ملف إكسيل (.xlsx)</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">رفع 📤</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
         setTimeout(loadAdminProducts, 100);
     }
     $('pageTitle').innerText = title; $('pageContent').innerHTML = content;
@@ -413,8 +322,8 @@ async function initPromoterSales() {
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let select = $('sCode');
         if(select) {
-            select.innerHTML = \`<option value="">اختر الصنف</option>\`;
-            cachedProducts.forEach(p => { select.innerHTML += \`<option value="\${p.itemCode}">\${p.itemCode} - \${p.description}</option>\`; });
+            select.innerHTML = `<option value="">اختر الصنف</option>`;
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -431,7 +340,7 @@ async function submitSale() {
     try {
         let imageUrl = '';
         if (photo) {
-            let storageRef = storage.ref(\`receipts/\${currentUser.uid}_\${Date.now()}_\${photo.name}\`);
+            let storageRef = storage.ref(`receipts/${currentUser.uid}_${Date.now()}_${photo.name}`);
             let uploadTask = await storageRef.put(photo);
             imageUrl = await uploadTask.ref.getDownloadURL();
         }
@@ -444,20 +353,20 @@ async function submitSale() {
         toast('تم الحفظ بنجاح', 'success');
         $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
         $('shareBox').classList.remove('hidden');
-        let text = \`فاتورة مبيعات:\\nالشركة: \${userData.company}\\nالصنف: \${c}\\nالسعر: \${p}\\nشكراً لتعاملكم!\`;
-        $('btnShareWA').onclick = () => window.open(\`https://wa.me/?text=\${encodeURIComponent(text)}\`, '_blank');
+        let text = `فاتورة مبيعات:\nالشركة: ${userData.company}\nالصنف: ${c}\nالسعر: ${p}\nشكراً لتعاملكم!`;
+        $('btnShareWA').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         loadMySales();
     } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
 }
 
 async function loadMySales() {
     let tb = $('mySalesTable'); if(!tb) return;
-    tb.innerHTML = \`<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th></tr>\`;
+    tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
         snap.docs.forEach(doc => {
-            let d = doc.data(); let imgLink = d.imageUrl ? \`<a href="\${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>\` : '-';
-            tb.innerHTML += \`<tr><td>\${d.itemCode}</td><td>\${d.description}</td><td>\${d.price}</td><td>\${imgLink}</td></tr>\`;
+            let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
+            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td></tr>`;
         });
     } catch(err) {}
     $('loader').classList.add('hidden');
@@ -467,7 +376,7 @@ async function markAttendance(slot) {
     $('locStatus').innerText = "جاري تحديد الموقع...";
     if (!navigator.geolocation) return processAttendance(slot, null);
     navigator.geolocation.getCurrentPosition(
-        pos => { processAttendance(slot, \`\${pos.coords.latitude},\${pos.coords.longitude}\`); },
+        pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`); },
         err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null); }
     );
 }
@@ -488,24 +397,24 @@ async function processAttendance(slot, loc) {
 
 async function loadMyAttendance() {
     let tb = $('myAttTable'); if(!tb) return;
-    tb.innerHTML = \`<tr><th>التاريخ</th><th>فترة 1</th><th>فترة 2</th></tr>\`;
+    tb.innerHTML = `<tr><th>التاريخ</th><th>فترة 1</th><th>فترة 2</th></tr>`;
     try {
         let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
         snap.docs.forEach(doc => {
             let d = doc.data();
-            tb.innerHTML += \`<tr><td>\${d.date}</td><td>\${d.slot1?'✅':'❌'}</td><td>\${d.slot2?'✅':'❌'}</td></tr>\`;
+            tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td></tr>`;
         });
     } catch(err) {}
 }
 
 async function loadAllSales() {
     let tb = $('allSalesTable'); if(!tb) return;
-    tb.innerHTML = \`<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>\`;
+    tb.innerHTML = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
     try {
         let snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(50).get();
         snap.docs.forEach(doc => {
-            let d = doc.data(), img = d.imageUrl ? \`<a href="\${d.imageUrl}" target="_blank">رابط</a>\` : '-';
-            tb.innerHTML += \`<tr><td>\${d.company} / \${d.branch}</td><td>\${d.promoterCode}</td><td>\${d.itemCode}</td><td>\${d.price}</td><td>\${d.date}</td><td>\${img}</td></tr>\`;
+            let d = doc.data(), img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
+            tb.innerHTML += `<tr><td>${d.company} / ${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
         });
     } catch(err) {}
 }
@@ -528,8 +437,8 @@ async function loadDashboard() {
         let tpCont = $('topProductsContainer'); tpCont.innerHTML = '';
         for(let c in prodObj) {
             let sortedProds = Object.entries(prodObj[c]).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            let prodsHtml = sortedProds.map(p => \`<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>\${p[0]}</span> <strong>\${p[1]}</strong></li>\`).join('');
-            tpCont.innerHTML += \`<div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;"><h4 style="color:var(--am); margin-bottom:10px;">\${c}</h4><ul style="list-style:none; padding:0;">\${prodsHtml}</ul></div>\`;
+            let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
+            tpCont.innerHTML += `<div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;"><h4 style="color:var(--am); margin-bottom:10px;">${c}</h4><ul style="list-style:none; padding:0;">${prodsHtml}</ul></div>`;
         }
     } catch(err) {}
 }
@@ -556,10 +465,10 @@ async function loadAdminUsers() {
     try {
         cachedAdminAuthUsers = (await db.collection('auth_users').get()).docs.map(d => d.data());
         cachedAdminUsers = (await db.collection('users').get()).docs.map(d => d.data());
-        tb.innerHTML = \`<tr><th>Role</th><th>Email</th><th>Company/Branch</th><th>Code</th><th>Target</th><th>Comm.</th><th>Action</th></tr>\`;
+        tb.innerHTML = `<tr><th>Role</th><th>Email</th><th>Company/Branch</th><th>Code</th><th>Target</th><th>Comm.</th><th>Action</th></tr>`;
         cachedAdminUsers.forEach(u => {
-            tb.innerHTML += \`<tr><td>\${u.role}</td><td>\${u.email}</td><td>\${u.company} / \${u.branch}</td><td>\${u.promoterCode}</td><td>\${u.target || 0}</td><td>\${u.commissionRate || 0}%</td>
-                <td><button class="btn btn-primary" style="padding:4px;" onclick="editUser('\${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:4px;" onclick="deleteUser('\${u.uid}')">✖️</button></td></tr>\`;
+            tb.innerHTML += `<tr><td>${u.role}</td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0}</td><td>${u.commissionRate || 0}%</td>
+                <td><button class="btn btn-primary" style="padding:4px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:4px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
         });
     } catch(err) {}
     $('loader').classList.add('hidden');
@@ -604,10 +513,10 @@ async function uploadProductsExcel() {
 
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
-    tb.innerHTML = \`<tr><th>الشركة</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>Action</th></tr>\`;
+    tb.innerHTML = `<tr><th>الشركة</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>Action</th></tr>`;
     let snap = await db.collection('products').orderBy('timestamp', 'desc').limit(50).get();
     snap.docs.forEach(doc => {
-        let p = doc.data(); tb.innerHTML += \`<tr><td>\${p.company}</td><td>\${p.itemCode}</td><td>\${p.description}</td><td>\${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('\${doc.id}').delete().then(loadAdminProducts)">✖️</button></td></tr>\`;
+        let p = doc.data(); tb.innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete().then(loadAdminProducts)">✖️</button></td></tr>`;
     });
 }
     </script>
