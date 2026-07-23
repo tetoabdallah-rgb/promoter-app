@@ -206,18 +206,26 @@ document.addEventListener('DOMContentLoaded', () => {
 async function checkAuth() {
     let storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        $('uiName').innerText = currentUser.email.split('@')[0];
-        let docSnap = await db.collection('users').doc(currentUser.uid).get();
-        if (docSnap.exists) {
-            userData = docSnap.data(); currentRole = userData.role;
-        } else {
-            currentRole = 'promoter';
-            userData = { uid: currentUser.uid, email: currentUser.email, role: currentRole, promoterCode: 'PRM-' + Math.floor(Math.random()*10000), branch: 'Main', company: 'Main', target: 0, commissionRate: 0 };
-            await db.collection('users').doc(currentUser.uid).set(userData);
+        try {
+            currentUser = JSON.parse(storedUser);
+            if (!currentUser || !currentUser.uid) throw new Error("Invalid user object");
+            
+            $('uiName').innerText = currentUser.email.split('@')[0];
+            let docSnap = await db.collection('users').doc(currentUser.uid).get();
+            if (docSnap.exists) {
+                userData = docSnap.data(); currentRole = userData.role;
+            } else {
+                currentRole = 'promoter';
+                userData = { uid: currentUser.uid, email: currentUser.email, role: currentRole, promoterCode: 'PRM-' + Math.floor(Math.random()*10000), branch: 'Main', company: 'Main', target: 0, commissionRate: 0 };
+                await db.collection('users').doc(currentUser.uid).set(userData);
+            }
+            $('uiRole').innerText = currentRole === 'admin' ? '👑 Admin' : '👤 Promoter';
+            buildNav(); showScreen('app-screen');
+        } catch(e) {
+            console.error("Auth parsing error:", e);
+            localStorage.removeItem('currentUser');
+            showScreen('auth-screen');
         }
-        $('uiRole').innerText = currentRole === 'admin' ? '👑 Admin' : '👤 Promoter';
-        buildNav(); showScreen('app-screen');
     } else { showScreen('auth-screen'); }
     $('loader').classList.add('hidden');
 }
