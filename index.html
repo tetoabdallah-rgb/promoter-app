@@ -19,7 +19,7 @@
     <!-- Auto-Clear old caches to guarantee fresh updates -->
     <script>
         try {
-            const APP_VERSION = 'v4';
+            const APP_VERSION = 'v5';
             if(localStorage.getItem('app_version') !== APP_VERSION) {
                 localStorage.clear();
                 if('caches' in window) {
@@ -496,12 +496,9 @@ function printReceipt(code, price, date) {
             <p>السعر: ${price}</p>
             <div class="line"></div>
             <p>شكراً لتعاملكم معنا!</p>
-            <script>setTimeout(()=>{window.print(); window.close();},500);</script>
+            <script>setTimeout(()=>{window.print(); window.close();},500);<\/script>
         </body></html>
     `);
-}
-    } catch(err) {}
-    $('loader').classList.add('hidden');
 }
 
 function resizeImage(file, max_size) {
