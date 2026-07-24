@@ -269,6 +269,7 @@ function buildNav() {
         links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
         links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
         links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
+        links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
     } else {
         links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
         links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
@@ -546,7 +547,7 @@ async function uploadProductsExcel() {
 
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>الشركة</th><th>الكود</th><th>الوصف</th><th>السعر</th><th>Action</th></tr>`;
+    tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
     let snap = await db.collection('products').orderBy('timestamp', 'desc').limit(50).get();
     snap.docs.forEach(doc => {
         let p = doc.data(); tb.innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete().then(loadAdminProducts)">✖️</button></td></tr>`;
