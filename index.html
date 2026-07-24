@@ -19,7 +19,7 @@
     <!-- Auto-Clear old caches to guarantee fresh updates -->
     <script>
         try {
-            const APP_VERSION = 'v2.1';
+            const APP_VERSION = 'v4';
             if(localStorage.getItem('app_version') !== APP_VERSION) {
                 localStorage.clear();
                 if('caches' in window) {
@@ -41,6 +41,7 @@
     <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -187,7 +188,6 @@ function toast(msg, type='info') {
     setTimeout(() => el.remove(), 3500);
 }
 
-// REMOVED DOMContentLoaded to ensure it runs immediately
 document.documentElement.lang = currentLang; document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
 let adminEmail = 'tetoabdallah@gmail.com';
 db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get().then(snap => {
@@ -315,12 +315,12 @@ function nav(page) {
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')}</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><div style="display:flex; gap:5px;"><select id="sCode" class="input-box" onchange="autoFillProductDetails()" style="flex:1;"></select><button class="btn btn-primary" onclick="startScanner()" style="padding:0 10px; flex-shrink:0;">📸</button></div><div id="reader" style="width:100%; display:none; margin-top:5px; border-radius:5px; overflow:hidden;"></div></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')} 📷</label><input type="file" id="sPhoto" class="input-box" accept="image/*" capture="environment"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
+        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
@@ -330,7 +330,7 @@ function nav(page) {
     }
     else if (page === 'admin_dash') {
         title = t('admin_dash');
-        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
+        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
     else if (page === 'admin_users') {
@@ -384,6 +384,29 @@ async function initPromoterSales() {
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
 }
+
+let html5QrcodeScanner = null;
+function startScanner() {
+    let readerDiv = $('reader');
+    if (readerDiv.style.display === 'block') {
+        if(html5QrcodeScanner) { html5QrcodeScanner.clear(); }
+        readerDiv.style.display = 'none';
+        return;
+    }
+    readerDiv.style.display = 'block';
+    html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+    html5QrcodeScanner.render((decodedText, decodedResult) => {
+        let found = cachedProducts.find(p => p.itemCode === decodedText);
+        if (found) {
+            $('sCode').value = decodedText;
+            autoFillProductDetails();
+            toast('تم التقاط الكود', 'success');
+            html5QrcodeScanner.clear();
+            readerDiv.style.display = 'none';
+        } else { toast('الكود غير مسجل', 'error'); }
+    }, (error) => {});
+}
+
 function autoFillProductDetails() {
     let prod = cachedProducts.find(p => p.itemCode === $('sCode').value);
     if(prod) { $('sPrice').value = prod.price; $('sDesc').value = prod.description; } else { $('sPrice').value = ''; $('sDesc').value = ''; }
@@ -401,11 +424,39 @@ async function submitSale() {
             imageUrl = await uploadTask.ref.getDownloadURL();
         }
         let commEarned = (Number(p) * (userData.commissionRate || 0)) / 100;
+        
+        if (!navigator.onLine) {
+            let offlineQueue = JSON.parse(localStorage.getItem('offlineSales') || '[]');
+            offlineQueue.push({
+                uid: currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
+                itemCode: c, price: Number(p), description: desc, commission: commEarned, imageUrl: imageUrl,
+                date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0]
+            });
+            localStorage.setItem('offlineSales', JSON.stringify(offlineQueue));
+            toast('تم الحفظ محلياً (بدون إنترنت). يرجى المزامنة لاحقاً!', 'success');
+            $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
+            loadMySales();
+            checkOfflineQueue();
+            $('loader').classList.add('hidden');
+            return;
+        }
+
         await db.collection('sales').doc().set({
             uid: currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
             itemCode: c, price: Number(p), description: desc, commission: commEarned, imageUrl: imageUrl,
             date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0], timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
+        try {
+            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).get();
+            if (!stockSnap.empty) {
+                let stockDoc = stockSnap.docs[0];
+                let currentQty = Number(stockDoc.data().quantity);
+                if (currentQty > 0) {
+                    await db.collection('company_stock').doc(stockDoc.id).update({ quantity: currentQty - 1 });
+                }
+            }
+        } catch(e) { console.error("Stock deduction failed", e); }
         toast('تم الحفظ بنجاح', 'success');
         $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
         $('shareBox').classList.remove('hidden');
@@ -417,37 +468,105 @@ async function submitSale() {
 
 async function loadMySales() {
     let tb = $('mySalesTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th></tr>`;
+    tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
         snap.docs.forEach(doc => {
             let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
-            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td></tr>`;
+            let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
+            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
     } catch(err) {}
     $('loader').classList.add('hidden');
 }
 
-async function markAttendance(slot) {
-    $('locStatus').innerText = "جاري تحديد الموقع...";
-    if (!navigator.geolocation) return processAttendance(slot, null);
-    navigator.geolocation.getCurrentPosition(
-        pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`); },
-        err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null); }
-    );
+function printReceipt(code, price, date) {
+    let receiptWindow = window.open('', '_blank', 'width=300,height=400');
+    receiptWindow.document.write(`
+        <html><head><style>
+            body { font-family: monospace; width: 250px; text-align: center; margin: 0; padding: 10px; }
+            h2 { margin: 5px 0; }
+            .line { border-bottom: 1px dashed #000; margin: 10px 0; }
+        </style></head>
+        <body dir="rtl">
+            <h2>Promoter Pro</h2>
+            <div class="line"></div>
+            <p>التاريخ: ${date}</p>
+            <p>كود الصنف: ${code}</p>
+            <p>السعر: ${price}</p>
+            <div class="line"></div>
+            <p>شكراً لتعاملكم معنا!</p>
+            <script>setTimeout(()=>{window.print(); window.close();},500);</script>
+        </body></html>
+    `);
+}
+    } catch(err) {}
+    $('loader').classList.add('hidden');
 }
 
-async function processAttendance(slot, loc) {
-    $('locStatus').innerText = ""; $('loader').classList.remove('hidden');
+function resizeImage(file, max_size) {
+    return new Promise((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let img = new Image();
+            img.onload = function() {
+                let canvas = document.createElement('canvas');
+                let w = img.width, h = img.height;
+                if (w > h) { if (w > max_size) { h *= max_size / w; w = max_size; } }
+                else { if (h > max_size) { w *= max_size / h; h = max_size; } }
+                canvas.width = w; canvas.height = h;
+                let ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', 0.5));
+            };
+            img.onerror = reject;
+            img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+async function markAttendance(slot) {
+    let f = $('attPhoto') ? $('attPhoto').files[0] : null;
+    if (!f) return toast('يرجى التقاط سيلفي الحضور أولاً', 'error');
+    $('locStatus').innerText = "جاري تحضير الصورة وتحديد الموقع...";
+    $('loader').classList.remove('hidden');
+    try {
+        let b64 = await resizeImage(f, 600);
+        if (!navigator.geolocation) return processAttendance(slot, null, b64);
+        navigator.geolocation.getCurrentPosition(
+            pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`, b64); },
+            err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null, b64); }
+        );
+    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.add('hidden'); }
+}
+
+async function processAttendance(slot, loc, photoBase64) {
+    $('locStatus').innerText = ""; 
+    
+    if (!navigator.onLine) {
+        let offAtt = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
+        offAtt.push({slot: slot, loc: loc, photo: photoBase64, uid: currentUser.uid});
+        localStorage.setItem('offlineAtt', JSON.stringify(offAtt));
+        toast('تم حفظ الحضور محلياً. لا تنسَ المزامنة!', 'success');
+        if($('attPhoto')) $('attPhoto').value = '';
+        checkOfflineQueue();
+        $('loader').classList.add('hidden');
+        return;
+    }
+
     try {
         let d = new Date().toISOString().split('T')[0];
         let docRef = db.collection('attendance').doc(currentUser.uid + "_" + d);
         let docSnap = await docRef.get();
         let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-        if (slot === 1) { data.slot1 = true; data.loc1 = loc; }
-        if (slot === 2) { data.slot2 = true; data.loc2 = loc; }
+        if (slot === 1) { data.slot1 = true; data.loc1 = loc; data.photo1 = photoBase64; }
+        if (slot === 2) { data.slot2 = true; data.loc2 = loc; data.photo2 = photoBase64; }
         await docRef.set(data, {merge: true});
-        toast('تم الحضور', 'success'); loadMyAttendance();
+        toast('تم الحضور', 'success'); 
+        if($('attPhoto')) $('attPhoto').value = '';
+        loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
 }
 
@@ -545,7 +664,7 @@ async function loadAllSales() {
 }
 
 async function loadDashboard() {
-    let compObj = {}, brObj = {}, prodObj = {};
+    let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
     try {
         let snap = await db.collection('sales').limit(200).get(); 
         snap.docs.forEach(doc => {
@@ -553,12 +672,27 @@ async function loadDashboard() {
             compObj[d.company] = (compObj[d.company] || 0) + d.price; brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
             if(!prodObj[d.company]) prodObj[d.company] = {};
             prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + d.price;
+            promoterObj[d.promoterCode] = (promoterObj[d.promoterCode] || 0) + d.price;
         });
         if(chart1) chart1.destroy();
         chart1 = new Chart(document.getElementById('companyChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
         if(chart2) chart2.destroy();
         chart2 = new Chart(document.getElementById('branchChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(brObj), datasets: [{ data: Object.values(brObj), backgroundColor: ['#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } });
         
+        let lbCont = $('leaderboardContainer');
+        if(lbCont) {
+            lbCont.innerHTML = '';
+            let topPromoters = Object.entries(promoterObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            let medals = ['🥇', '🥈', '🥉'];
+            topPromoters.forEach((p, i) => {
+                lbCont.innerHTML += `<div style="background:rgba(16,185,129,0.1); border:1px solid var(--gn); padding:15px; border-radius:8px; text-align:center;">
+                    <div style="font-size:3rem; margin-bottom:10px;">${medals[i] || '🏅'}</div>
+                    <h4 style="margin:0 0 5px 0;">${p[0]}</h4>
+                    <strong style="color:var(--gn); font-size:1.2rem;">${p[1]}</strong>
+                </div>`;
+            });
+        }
+
         let tpCont = $('topProductsContainer'); tpCont.innerHTML = '';
         for(let c in prodObj) {
             let sortedProds = Object.entries(prodObj[c]).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -700,7 +834,7 @@ async function deleteStock(id) {
 
 async function loadAllAttendance() {
     let tb = $('allAttTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>${t('promoter')}</th><th>${t('sale_date')}</th><th>${t('shift_1')}</th><th>${t('shift_2')}</th><th>${t('break_title')}</th></tr>`;
+    tb.innerHTML = `<tr><th>${t('promoter')}</th><th>${t('sale_date')}</th><th>فترة 1</th><th>فترة 2</th><th>${t('break_title')}</th></tr>`;
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
@@ -714,8 +848,11 @@ async function loadAllAttendance() {
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
             let user = cachedAdminUsers.find(u => u.uid === d.uid);
             let promoterName = user ? (user.email.split('@')[0] + ' (' + user.promoterCode + ')') : d.uid.substring(0,8);
-            
-            tb.innerHTML += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            let loc1Link = d.loc1 ? `<a href="https://maps.google.com/?q=${d.loc1}" target="_blank" style="text-decoration:none;">📍</a>` : '';
+            let loc2Link = d.loc2 ? `<a href="https://maps.google.com/?q=${d.loc2}" target="_blank" style="text-decoration:none;">📍</a>` : '';
+            let pic1Link = d.photo1 ? `<a href="#" onclick="window.open('${d.photo1}', '_blank')" style="text-decoration:none;">📷</a>` : '';
+            let pic2Link = d.photo2 ? `<a href="#" onclick="window.open('${d.photo2}', '_blank')" style="text-decoration:none;">📷</a>` : '';
+            tb.innerHTML += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'✅':'❌'} ${loc1Link} ${pic1Link}</td><td>${d.slot2?'✅':'❌'} ${loc2Link} ${pic2Link}</td><td>B1:${b1} B2:${b2}</td></tr>`;
         });
     } catch(err) {}
     $('loader').classList.add('hidden');
@@ -738,6 +875,68 @@ function exportTableToExcel(tableId, filename) {
     let wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
     XLSX.writeFile(wb, filename + "_" + Date.now() + ".xlsx");
 }
+
+function checkOfflineQueue() {
+    let sales = JSON.parse(localStorage.getItem('offlineSales') || '[]');
+    let atts = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
+    let total = sales.length + atts.length;
+    let syncBtn = $('syncBtn');
+    if (!syncBtn) {
+        syncBtn = document.createElement('button');
+        syncBtn.id = 'syncBtn';
+        syncBtn.className = 'btn btn-primary';
+        syncBtn.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:999; box-shadow:0 4px 6px rgba(0,0,0,0.3); font-weight:bold; font-size:1.1rem; padding:10px 20px; border-radius:20px;';
+        syncBtn.onclick = syncOfflineData;
+        document.body.appendChild(syncBtn);
+    }
+    if (total > 0) {
+        syncBtn.innerText = `🔄 مزامنة (${total})`;
+        syncBtn.style.display = 'block';
+    } else {
+        syncBtn.style.display = 'none';
+    }
+}
+window.addEventListener('online', checkOfflineQueue);
+setInterval(checkOfflineQueue, 15000);
+
+async function syncOfflineData() {
+    if (!navigator.onLine) return toast('لا يوجد اتصال بالإنترنت حالياً', 'error');
+    $('loader').classList.remove('hidden');
+    try {
+        let sales = JSON.parse(localStorage.getItem('offlineSales') || '[]');
+        let atts = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
+        for (let s of sales) {
+            s.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+            await db.collection('sales').doc().set(s);
+            try {
+                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).get();
+                if (!stockSnap.empty) {
+                    let stockDoc = stockSnap.docs[0];
+                    let currentQty = Number(stockDoc.data().quantity);
+                    if (currentQty > 0) await db.collection('company_stock').doc(stockDoc.id).update({ quantity: currentQty - 1 });
+                }
+            } catch(e) {}
+        }
+        localStorage.removeItem('offlineSales');
+        
+        for (let a of atts) {
+            let d = new Date().toISOString().split('T')[0];
+            let docRef = db.collection('attendance').doc(a.uid + "_" + d);
+            let docSnap = await docRef.get();
+            let data = docSnap.exists ? docSnap.data() : { uid: a.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+            if (a.slot === 1) { data.slot1 = true; data.loc1 = a.loc; data.photo1 = a.photo; }
+            if (a.slot === 2) { data.slot2 = true; data.loc2 = a.loc; data.photo2 = a.photo; }
+            await docRef.set(data, {merge: true});
+        }
+        localStorage.removeItem('offlineAtt');
+        
+        toast('تمت مزامنة البيانات بنجاح! 🚀', 'success');
+        checkOfflineQueue();
+        setTimeout(() => window.location.reload(), 1000);
+    } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
     </script>
 </body>
 </html>
