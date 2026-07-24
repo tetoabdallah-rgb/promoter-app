@@ -48,39 +48,62 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     
     <style>
-:root { --bg1: #0f172a; --bg2: #1e293b; --tx1: #f8fafc; --tx2: #cbd5e1; --am: #3b82f6; --gn: #10b981; --rd: #ef4444; --glass-bg: rgba(30, 41, 59, 0.6); --glass-border: rgba(255, 255, 255, 0.1); }
+:root { --bg1: #0f172a; --bg2: #1e293b; --tx1: #f8fafc; --tx2: #cbd5e1; --am: #3b82f6; --gn: #10b981; --rd: #ef4444; --glass-bg: rgba(30, 41, 59, 0.7); --glass-border: rgba(255, 255, 255, 0.15); }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
 body { background-color: var(--bg1); color: var(--tx1); min-height: 100vh; overflow-x: hidden; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--am); }
+
 .bg-animated { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: linear-gradient(120deg, #0f172a, #1e1b4b, #0f172a); background-size: 200% 200%; animation: gradientBG 15s ease infinite; }
 @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
-.glass-card { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.glass-card { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.glass-card:hover { box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45); }
 .screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 10; }
 .hidden { display: none !important; }
-.auth-box { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 15px; }
-.input-box { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); color: var(--tx1); font-size: 1rem; outline: none; transition: 0.3s; }
-.input-box:focus { border-color: var(--am); }
-.btn { padding: 12px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; text-align: center; display: inline-block; }
-.btn-primary { background: var(--am); color: #fff; } .btn-primary:hover { opacity: 0.9; }
-.btn-danger { background: var(--rd); color: #fff; } .btn-success { background: var(--gn); color: #fff; }
-#app-screen { display: flex; flex-direction: row; justify-content: flex-start; align-items: stretch; padding: 20px; gap: 20px; }
-.sidebar { width: 250px; display: flex; flex-direction: column; }
-.user-profile { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
-.user-profile .avatar { font-size: 2.5rem; } .user-profile .info { display: flex; flex-direction: column; }
-.badge { background: var(--am); padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; width: fit-content; margin-top: 5px; }
-.nav-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.nav-links li { padding: 12px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
-.nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.1); border-right: 4px solid var(--am); }
-.main-content { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-.topbar { padding: 15px; } .page-container { flex: 1; overflow-y: auto; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
-.fg label { font-size: 0.9rem; color: var(--tx2); }
-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-border); } th { color: var(--tx2); }
-.spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--am); width: 40px; height: 40px; -webkit-animation: spin 1s linear infinite; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@media (max-width: 768px) { #app-screen { flex-direction: column; padding: 10px; } .sidebar { width: 100%; } }
+.auth-box { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+.input-box { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); color: var(--tx1); font-size: 1rem; outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+.input-box:focus { border-color: var(--am); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+.btn { padding: 14px; border: none; border-radius: 12px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: all 0.2s ease; width: 100%; text-align: center; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: linear-gradient(135deg, var(--am), #2563eb); color: #fff; } .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 12px rgba(59,130,246,0.4); }
+.btn-danger { background: linear-gradient(135deg, var(--rd), #dc2626); color: #fff; } .btn-success { background: linear-gradient(135deg, var(--gn), #059669); color: #fff; }
+#app-screen { display: flex; flex-direction: row; justify-content: flex-start; align-items: stretch; padding: 20px; gap: 24px; min-height: 100vh; }
+.sidebar { width: 260px; display: flex; flex-direction: column; }
+.user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
+.user-profile .avatar { font-size: 2.8rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); } .user-profile .info { display: flex; flex-direction: column; }
+.badge { background: linear-gradient(135deg, var(--am), #2563eb); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; width: fit-content; margin-top: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.nav-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.nav-links li { padding: 14px 20px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--tx2); }
+.nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.08); color: var(--tx1); border-right: 4px solid var(--am); transform: translateX(-4px); }
+.main-content { flex: 1; display: flex; flex-direction: column; gap: 24px; }
+.topbar { padding: 20px; } .page-container { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+.fg { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.fg label { font-size: 0.95rem; color: var(--tx2); font-weight: 500; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; }
+th, td { padding: 16px; text-align: right; border-bottom: 1px solid var(--glass-border); } 
+th { color: var(--tx2); font-weight: 600; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; }
+tr { transition: background-color 0.2s ease; }
+tr:hover { background-color: rgba(255,255,255,0.04); }
+.spinner { width: 50px; height: 50px; border: 4px solid var(--glass-border); border-top-color: var(--am); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+/* Modern Skeleton Loader */
+.skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; height: 20px; }
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* Smart search bar */
+.search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-bar input { flex: 1; min-width: 200px; }
+.export-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; padding: 14px 24px; white-space: nowrap; }
+.export-btn:hover { filter: brightness(1.1); box-shadow: 0 6px 12px rgba(16,185,129,0.4); }
+/* Progress Bar */
+.progress-bg { width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; overflow: hidden; margin-top: 8px; }
+.progress-bar { height: 100%; transition: width 0.5s ease; border-radius: 10px; }
+@media (max-width: 768px) { #app-screen { flex-direction: column; padding: 15px; } .sidebar { width: 100%; margin-bottom: 20px; } .nav-links li:hover, .nav-links li.active { transform: none; border-right: none; border-bottom: 4px solid var(--am); } }
     </style>
     
     <script>
@@ -148,8 +171,8 @@ try {
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 const dict = {
-    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة" },
-    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login" }
+    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة", search: "بحث 🔍", export_excel: "تصدير 📥" },
+    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login", search: "Search 🔍", export_excel: "Export 📥" }
 };
 
 function t(key) { return dict[currentLang][key] || key; }
@@ -291,7 +314,7 @@ function nav(page) {
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')}</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')}</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
@@ -301,7 +324,7 @@ function nav(page) {
     }
     else if (page === 'admin_sales') {
         title = t('admin_sales');
-        content = `<div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
+        content = `<div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
         setTimeout(loadAllSales, 100);
     }
     else if (page === 'admin_dash') {
@@ -311,17 +334,17 @@ function nav(page) {
     }
     else if (page === 'admin_users') {
         title = t('admin_users');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
         setTimeout(loadAdminUsers, 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button></div><div class="search-bar"><input type="text" id="s_productsTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_productsTable', 'productsTable')"><button class="btn export-btn" onclick="exportTableToExcel('productsTable', 'Products')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
         setTimeout(loadAdminProducts, 100);
     }
     else if (page === 'admin_companies') {
         title = t('admin_companies');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button></div><div class="search-bar"><input type="text" id="s_stockTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_stockTable', 'stockTable')"><button class="btn export-btn" onclick="exportTableToExcel('stockTable', 'Stock')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
         setTimeout(loadAdminStock, 100);
     }
     $('pageTitle').innerText = title; $('pageContent').innerHTML = content;
@@ -495,10 +518,11 @@ async function loadAdminUsers() {
             db.collection('users').onSnapshot(snap2 => {
                 cachedAdminUsers = snap2.docs.map(d => d.data());
                 if(!$('usersTable')) return;
-                $('usersTable').innerHTML = `<tr><th>Role</th><th>Email</th><th>Company/Branch</th><th>Code</th><th>Target</th><th>Comm.</th><th>Action</th></tr>`;
+                $('usersTable').innerHTML = `<tr><th>${t('role')}</th><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
                 cachedAdminUsers.forEach(u => {
-                    $('usersTable').innerHTML += `<tr><td>${u.role}</td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0}</td><td>${u.commissionRate || 0}%</td>
-                        <td><button class="btn btn-primary" style="padding:4px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:4px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
+                    let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
+                    $('usersTable').innerHTML += `<tr><td><span class="badge">${u.role}</span></td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
+                        <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
                 });
                 $('loader').classList.add('hidden');
             });
@@ -597,6 +621,24 @@ function loadAdminStock() {
 async function deleteStock(id) {
     if(!confirm(t('confirm_delete'))) return;
     await db.collection('company_stock').doc(id).delete();
+}
+
+function filterTable(inputId, tableId) {
+    let input = $(inputId).value.toLowerCase();
+    let table = $(tableId);
+    if (!table) return;
+    let trs = table.getElementsByTagName("tr");
+    for (let i = 1; i < trs.length; i++) {
+        let text = trs[i].textContent.toLowerCase();
+        trs[i].style.display = text.indexOf(input) > -1 ? "" : "none";
+    }
+}
+
+function exportTableToExcel(tableId, filename) {
+    let table = $(tableId);
+    if (!table) return;
+    let wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
+    XLSX.writeFile(wb, filename + "_" + Date.now() + ".xlsx");
 }
     </script>
 </body>
