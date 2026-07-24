@@ -132,7 +132,7 @@ th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-
         </main>
     </div>
 
-    <div id="loader" class="screen" style="z-index: 9999; background: rgba(0,0,0,0.8);"><div class="spinner"></div></div>
+    <div id="loader" class="screen hidden" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; background: rgba(0,0,0,0.8);"><div class="spinner"></div></div>
 
     <script>
 const firebaseConfig = { apiKey: "AIzaSyBx9HhOL7ZDmp9c1Trmuc0syg23rT85zWw", authDomain: "promoter-app-c2a18.firebaseapp.com", projectId: "promoter-app-c2a18", storageBucket: "promoter-app-c2a18.firebasestorage.app", messagingSenderId: "926632289614", appId: "1:926632289614:web:2d1cf4407eaef3bfe4aa1f" };
@@ -463,15 +463,22 @@ async function loadAdminUsers() {
     let tb = $('usersTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
     try {
-        cachedAdminAuthUsers = (await db.collection('auth_users').get()).docs.map(d => d.data());
-        cachedAdminUsers = (await db.collection('users').get()).docs.map(d => d.data());
-        tb.innerHTML = `<tr><th>Role</th><th>Email</th><th>Company/Branch</th><th>Code</th><th>Target</th><th>Comm.</th><th>Action</th></tr>`;
-        cachedAdminUsers.forEach(u => {
-            tb.innerHTML += `<tr><td>${u.role}</td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0}</td><td>${u.commissionRate || 0}%</td>
-                <td><button class="btn btn-primary" style="padding:4px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:4px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
+        db.collection('auth_users').onSnapshot(snap1 => {
+            cachedAdminAuthUsers = snap1.docs.map(d => d.data());
+            db.collection('users').onSnapshot(snap2 => {
+                cachedAdminUsers = snap2.docs.map(d => d.data());
+                if(!$('usersTable')) return;
+                $('usersTable').innerHTML = `<tr><th>Role</th><th>Email</th><th>Company/Branch</th><th>Code</th><th>Target</th><th>Comm.</th><th>Action</th></tr>`;
+                cachedAdminUsers.forEach(u => {
+                    $('usersTable').innerHTML += `<tr><td>${u.role}</td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0}</td><td>${u.commissionRate || 0}%</td>
+                        <td><button class="btn btn-primary" style="padding:4px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:4px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
+                });
+                $('loader').classList.add('hidden');
+            });
         });
-    } catch(err) {}
-    $('loader').classList.add('hidden');
+    } catch(err) {
+        $('loader').classList.add('hidden');
+    }
 }
 
 function editUser(uid) {
