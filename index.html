@@ -109,6 +109,7 @@ th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--glass-
             <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
             
             <div><button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button></div>
+            <button id="btnRegister" class="btn" style="display:none; margin-top:10px; background:var(--gn); color:white;" onclick="registerAdmin()">إنشاء حساب إدارة جديد ➕</button>
             <p id="authError" style="color: var(--rd); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
         </div>
     </div>
@@ -213,9 +214,11 @@ function switchLogin(mode) {
     if(mode === 'promoter') {
         $('tabPromoter').style.background = 'var(--am)'; $('tabAdmin').style.background = 'rgba(255,255,255,0.1)';
         $('loginTitle').innerText = currentLang === 'ar' ? '👤 دخول البروموتر' : '👤 Promoter Login';
+        $('btnRegister').style.display = 'none';
     } else {
         $('tabAdmin').style.background = 'var(--am)'; $('tabPromoter').style.background = 'rgba(255,255,255,0.1)';
         $('loginTitle').innerText = currentLang === 'ar' ? '👑 دخول الإدارة' : '👑 Admin Login';
+        $('btnRegister').style.display = 'block';
     }
 }
 
@@ -238,6 +241,24 @@ async function login() {
             $('loader').classList.add('hidden'); $('authError').innerText = 'البيانات غير صحيحة.'; $('authError').style.display = 'block';
         }
     } catch(err) { $('loader').classList.add('hidden'); toast('خطأ في الاتصال', 'error'); }
+}
+
+async function registerAdmin() {
+    let e = $('authEmail').value.trim(), p = $('authPass').value.trim();
+    if (!e || !p) return toast('يرجى إدخال الإيميل والباسورد أولاً', 'error');
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).get();
+        if (!snap.empty) {
+            toast('هذا الحساب موجود بالفعل!', 'error');
+        } else {
+            let uid = 'usr_' + Date.now();
+            await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
+            await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: 'admin', promoterCode: 'ADMIN-'+Math.floor(Math.random()*1000), branch: 'Main', company: 'Main' });
+            toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
+        }
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
 }
 function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 
