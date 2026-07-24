@@ -148,8 +148,8 @@ try {
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 const dict = {
-    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف" },
-    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete" }
+    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة" },
+    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login" }
 };
 
 function t(key) { return dict[currentLang][key] || key; }
@@ -213,11 +213,11 @@ function switchLogin(mode) {
     loginMode = mode;
     if(mode === 'promoter') {
         $('tabPromoter').style.background = 'var(--am)'; $('tabAdmin').style.background = 'rgba(255,255,255,0.1)';
-        $('loginTitle').innerText = currentLang === 'ar' ? '👤 دخول البروموتر' : '👤 Promoter Login';
+        $('loginTitle').innerText = t('login_tab_promoter');
         $('btnRegister').style.display = 'none';
     } else {
         $('tabAdmin').style.background = 'var(--am)'; $('tabPromoter').style.background = 'rgba(255,255,255,0.1)';
-        $('loginTitle').innerText = currentLang === 'ar' ? '👑 دخول الإدارة' : '👑 Admin Login';
+        $('loginTitle').innerText = t('login_tab_admin');
         $('btnRegister').style.display = 'block';
     }
 }
@@ -258,7 +258,7 @@ async function registerAdmin() {
             toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
         }
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    $('loader').classList.remove('hidden');
 }
 function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 
@@ -290,12 +290,12 @@ function nav(page) {
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>صورة الفاتورة (اختياري)</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">حفظ المبيعات 💾</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">تم الحفظ بنجاح!</h4><button class="btn btn-success" id="btnShareWA">مشاركة الفاتورة عبر واتساب 💬</button></div><h3 style="margin-top:20px;">مبيعاتي الأخيرة</h3><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><select id="sCode" class="input-box" onchange="autoFillProductDetails()"></select></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')}</label><input type="file" id="sPhoto" class="input-box" accept="image/*"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = `<div class="glass-card" style="text-align:center;"><h3>تسجيل الحضور اليومي</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.</p><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">الفترة الأولى</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">الفترة الثانية</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="margin-top:20px;"><table id="myAttTable"></table></div>`;
+        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="margin-top:20px;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
@@ -305,18 +305,23 @@ function nav(page) {
     }
     else if (page === 'admin_dash') {
         title = t('admin_dash');
-        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الشركة</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">المبيعات حسب الفرع</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">أكثر المنتجات مبيعاً</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
+        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
     else if (page === 'admin_users') {
         title = t('admin_users');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة حساب جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>البريد</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>كلمة المرور</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>الصلاحية</label><select id="nuRole" class="input-box"><option value="promoter">بروموتر</option><option value="admin">مدير</option></select></div><div class="fg"><label>الشركة</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>الفرع</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>كود البروموتر</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>التارجت (شهري)</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>نسبة العمولة (%)</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">إضافة ➕</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">إلغاء ✖️</button></div></div></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
         setTimeout(loadAdminUsers, 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>رفع المنتجات (Excel)</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>الشركة</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>ملف إكسيل (.xlsx)</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">رفع 📤</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
         setTimeout(loadAdminProducts, 100);
+    }
+    else if (page === 'admin_companies') {
+        title = t('admin_companies');
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
+        setTimeout(loadAdminStock, 100);
     }
     $('pageTitle').innerText = title; $('pageContent').innerHTML = content;
 }
@@ -546,6 +551,51 @@ async function loadAdminProducts() {
     snap.docs.forEach(doc => {
         let p = doc.data(); tb.innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete().then(loadAdminProducts)">✖️</button></td></tr>`;
     });
+}
+async function uploadStockExcel() {
+    let comp = $('stockCompany').value.trim(), fileInput = $('stockFile');
+    if(!comp || !fileInput.files.length) return toast(t('fill_fields'), 'error');
+    $('loader').classList.remove('hidden');
+    let reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
+            let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            const batch = db.batch();
+            for(let i = 1; i < json.length; i++) {
+                let row = json[i];
+                if(row.length > 0) {
+                    let docRef = db.collection('company_stock').doc();
+                    batch.set(docRef, { company: comp, code: row[0]||'', name: row[1]||'', price: row[2]||0, quantity: row[3]||0 });
+                }
+            }
+            await batch.commit();
+            toast(t('upload_success'), 'success'); $('stockCompany').value = ''; fileInput.value = '';
+            loadAdminStock();
+        } catch(err) { toast('Error parsing Excel: '+err.message, 'error'); }
+        $('loader').classList.add('hidden');
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+function loadAdminStock() {
+    let tb = $('stockTable'); if(!tb) return;
+    $('loader').classList.remove('hidden');
+    db.collection('company_stock').onSnapshot(snap => {
+        if(!$('stockTable')) return;
+        $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
+        snap.forEach(doc => {
+            let d = doc.data();
+            $('stockTable').innerHTML += `<tr><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
+                <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">✖️</button></td></tr>`;
+        });
+        $('loader').classList.add('hidden');
+    }, err => { $('loader').classList.add('hidden'); });
+}
+
+async function deleteStock(id) {
+    if(!confirm(t('confirm_delete'))) return;
+    await db.collection('company_stock').doc(id).delete();
 }
     </script>
 </body>
