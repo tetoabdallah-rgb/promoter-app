@@ -17,9 +17,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // Enable Offline Persistence
-db.enablePersistence({synchronizeTabs:true}).catch(function(err) {
-    console.warn("Offline persistence error:", err.code);
-});
+/* Offline persistence disabled to prevent query hanging */});
 
 // --- State Variables ---
 let currentUser = null;
