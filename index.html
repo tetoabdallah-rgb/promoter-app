@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -6,9 +6,14 @@
     <title>Promoter App Cloud</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <!-- External Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Local Mode: No Firebase -->
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     
     <style>
         /* style.css */
@@ -179,17 +184,17 @@ th { color: var(--tx2); }
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
-            <h1 id="loginTitle" style="text-align:center; font-size: 2rem; margin-bottom: 20px;">👤 تسجيل الدخول</h1>
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
+                <button id="tabPromoter" class="btn" style="background:var(--am); color:white;" onclick="switchLogin('promoter')">👤 بروموتر</button>
+                <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">👑 إدارة</button>
+            </div>
+            <h1 id="loginTitle" style="text-align:center; font-size: 1.8rem; margin-bottom: 20px;">تسجيل الدخول</h1>
             <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
             <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
             <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
             
-            <div class="grid-2">
-                <button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button>
-                <button id="btnSignup" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid var(--glass-border);" onclick="signup()">إنشاء حساب جديد</button>
-            </div>
-            
-            <p id="authError" style="color: var(--danger); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
+            <div><button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button></div>
+            <p id="authError" style="color: var(--rd); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
         </div>
     </div>
 
@@ -241,7 +246,7 @@ const db = firebase.firestore();
 const storage = firebase.storage();
 
 // Enable Offline Persistence
-/* Offline persistence disabled to prevent query hanging */});
+/* Offline persistence disabled to prevent query hanging */
 
 // --- State Variables ---
 let currentUser = null;
@@ -1027,3 +1032,4 @@ async function loadAdminProducts() {
     </script>
 </body>
 </html>
+
