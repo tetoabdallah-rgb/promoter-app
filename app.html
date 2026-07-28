@@ -4,22 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoter App Cloud</title>
+    <link rel="manifest" href="./manifest.json">
     
     <!-- Kill rogue Service Worker immediately before anything else -->
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister().then(function() {                        console.log("Old Service Worker Unregistered");
-                    });
-                }
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW registered:', reg);
+                }).catch(err => console.log('SW registration failed:', err));
             });
-            // Also clear all caches
-            if ('caches' in window) {
-                caches.keys().then(function(names) {
-                    for (let name of names) caches.delete(name);
-                });
-            }
         }
     </script>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
