@@ -5,6 +5,16 @@ const storage = firebase.storage();
 
 db.enablePersistence().catch(err => console.log('Offline mode err:', err));
 
+window.onerror = function(msg, url, line) {
+    if (typeof msg === 'string' && msg.includes('ResizeObserver')) return;
+    toast(`Error: ${msg} (Line ${line})`, 'error');
+    $('loader').classList.add('hidden');
+};
+window.onunhandledrejection = function(e) {
+    toast(`Promise Error: ${e.reason ? e.reason.message : 'Unknown'}`, 'error');
+    $('loader').classList.add('hidden');
+};
+
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 const dict = {
@@ -85,8 +95,14 @@ async function login() {
     let e = $('authEmail').value.trim(), p = $('authPass').value.trim();
     if (!e || !p) return toast('يرجى إدخال البيانات', 'error');
     $('loader').classList.remove('hidden');
+    let timeoutId = setTimeout(() => {
+        $('loader').classList.add('hidden');
+        $('authError').innerText = 'تأخر الاتصال بالسيرفر! يرجى تحديث الصفحة أو إيقاف مانع الإعلانات.';
+        $('authError').style.display = 'block';
+    }, 8000);
     try {
         let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).where('password', '==', p).get();
+        clearTimeout(timeoutId);
         if (!snap.empty) {
             let user = snap.docs[0].data();
             let profileSnap = await db.collection('users').doc(user.uid).get();
