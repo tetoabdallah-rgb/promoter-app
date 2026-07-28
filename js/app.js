@@ -346,13 +346,15 @@ async function loadMySales() {
     tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
+        let index = 0;
         snap.docs.forEach(doc => {
             let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
             let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
-            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
+            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
+            index++;
         });
     } catch(err) {}
-    $('loader').classList.add('hidden');
+    $('loader').classList.remove('hidden');
 }
 
 function printReceipt(code, price, date) {
@@ -411,7 +413,7 @@ async function markAttendance(slot) {
             pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`, b64); },
             err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null, b64); }
         );
-    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.add('hidden'); }
+    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.remove('hidden'); }
 }
 
 async function processAttendance(slot, loc, photoBase64) {
@@ -424,7 +426,7 @@ async function processAttendance(slot, loc, photoBase64) {
         toast('تم حفظ الحضور محلياً. لا تنسَ المزامنة!', 'success');
         if($('attPhoto')) $('attPhoto').value = '';
         checkOfflineQueue();
-        $('loader').classList.add('hidden');
+        $('loader').classList.remove('hidden');
         return;
     }
 
@@ -439,7 +441,7 @@ async function processAttendance(slot, loc, photoBase64) {
         toast('تم الحضور', 'success'); 
         if($('attPhoto')) $('attPhoto').value = '';
         loadMyAttendance();
-    } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
+    } catch(err) { toast(err.message, 'error'); $('loader').classList.remove('hidden'); }
 }
 
 let breakIntervals = {};
@@ -465,7 +467,7 @@ async function toggleBreak(b) {
         }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    $('loader').classList.remove('hidden');
 }
 
 function setupBreakUI(b, breakData) {
@@ -510,15 +512,17 @@ async function loadMyAttendance() {
     try {
         let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
         let today = new Date().toISOString().split('T')[0];
+        let index = 0;
         snap.docs.forEach(doc => {
             let d = doc.data();
             let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
-            tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
             if (d.date === today && $('btnBreak1')) {
                 setupBreakUI(1, d.break1);
                 setupBreakUI(2, d.break2);
             }
+            index++;
         });
     } catch(err) {}
 }
@@ -547,20 +551,24 @@ async function loadAllSales() {
         });
         
         let html = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
+        let index = 0;
         for (let comp in grouped) {
             let compSales = 0;
             Object.keys(grouped[comp]).forEach(br => { grouped[comp][br].forEach(x => compSales += Number(x.price)); });
             
-            html += `<tr style="background:rgba(59, 130, 246, 0.2);"><td colspan="6" style="text-align:center; font-weight:bold; color:var(--am);">🏢 شركة: ${comp} (الإجمالي: ${compSales})</td></tr>`;
+            html += `<tr class="animate-row" style="background:rgba(59, 130, 246, 0.2); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:center; font-weight:bold; color:var(--am);">🏢 شركة: ${comp} (الإجمالي: ${compSales})</td></tr>`;
+            index++;
             
             for (let br in grouped[comp]) {
                 let brSales = 0;
                 grouped[comp][br].forEach(x => brSales += Number(x.price));
-                html += `<tr style="background:rgba(255, 255, 255, 0.05);"><td colspan="6" style="text-align:right; font-weight:bold; color:#f59e0b;">📍 فرع: ${br} (الإجمالي: ${brSales})</td></tr>`;
+                html += `<tr class="animate-row" style="background:rgba(255, 255, 255, 0.05); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:right; font-weight:bold; color:#f59e0b;">📍 فرع: ${br} (الإجمالي: ${brSales})</td></tr>`;
+                index++;
                 
                 grouped[comp][br].slice(0, 150).forEach(d => {
                     let img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
-                    html += `<tr><td>-</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
+                    html += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>-</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
+                    index++;
                 });
             }
         }
@@ -737,15 +745,17 @@ async function loadAdminUsers(filterRole) {
                     $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('action')}</th></tr>`;
                 }
                 
+                let index = 0;
                 filtered.forEach(u => {
                     if (filterRole === 'promoter') {
-                        let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
-                        $('usersTable').innerHTML += `<tr><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
+                        let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%;"></div></div>` : '';
+                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
                             <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
                     } else {
-                        $('usersTable').innerHTML += `<tr><td>${u.email}</td><td>${u.company || '-'} / ${u.branch || '-'}</td>
+                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company || '-'} / ${u.branch || '-'}</td>
                             <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
                     }
+                    index++;
                 });
                 $('loader').classList.add('hidden');
             });
@@ -893,9 +903,11 @@ async function loadAdminProducts() {
     db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('productsTable')) return;
         $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
+        let index = 0;
         snap.forEach(doc => {
             let p = doc.data(); 
-            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
+            $('productsTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
+            index++;
         });
         $('loader').classList.add('hidden');
     }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
@@ -984,10 +996,12 @@ function loadAdminStock() {
     db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('stockTable')) return;
         $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
+        let index = 0;
         snap.forEach(doc => {
             let d = doc.data();
-            $('stockTable').innerHTML += `<tr><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
+            $('stockTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
                 <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">✖️</button></td></tr>`;
+            index++;
         });
         $('loader').classList.add('hidden');
     }, err => { $('loader').classList.add('hidden'); });
