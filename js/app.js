@@ -29,7 +29,7 @@ let adminEmail = 'tetoabdallah@gmail.com';
 db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get().then(snap => {
     if (snap.empty) {
         db.collection('auth_users').doc('admin_root').set({uid: 'admin_root', email: adminEmail, password: 'admin'});
-        db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main' });
+        db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main', adminId: uid });
     }
 }).catch(e => console.log(e));
 
@@ -113,11 +113,11 @@ async function registerAdmin() {
         } else {
             let uid = 'usr_' + Date.now();
             await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
-            await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: 'admin', promoterCode: 'ADMIN-'+Math.floor(Math.random()*1000), branch: 'Main', company: 'Main' });
+            await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: 'admin', promoterCode: 'ADMIN-'+Math.floor(Math.random()*1000), branch: 'Main', company: 'Main', adminId: uid });
             toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
         }
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.remove('hidden');
+    $('loader').classList.add('hidden');
 }
 function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 
