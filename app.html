@@ -339,7 +339,7 @@ function nav(page) {
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button></div><div class="search-bar"><input type="text" id="s_productsTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_productsTable', 'productsTable')"><button class="btn export-btn" onclick="exportTableToExcel('productsTable', 'Products')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllProducts()">مسح جميع المنتجات 🗑️</button></div></div><div class="search-bar"><input type="text" id="s_productsTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_productsTable', 'productsTable')"><button class="btn export-btn" onclick="exportTableToExcel('productsTable', 'Products')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
         setTimeout(loadAdminProducts, 100);
     }
     else if (page === 'admin_companies') {
@@ -373,12 +373,12 @@ let cachedProducts = [];
 async function initPromoterSales() {
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('company_stock').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
+        let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let select = $('sCode');
         if(select) {
             select.innerHTML = `<option value="">اختر الصنف</option>`;
-            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.code}">${p.code} - ${p.name}</option>`; });
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -768,7 +768,7 @@ async function uploadProductsExcel() {
                     batch.set(db.collection('products').doc(), { adminId: currentUser.uid, company: comp, itemCode: String(json[i][0]), description: String(json[i][1]), price: Number(json[i][2]), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 }
             }
-            await batch.commit(); toast('تم الرفع', 'success'); $('prodCompany').value = ''; fileInput.value = ''; loadAdminProducts();
+            await batch.commit(); toast('تم الرفع', 'success'); $('prodCompany').value = ''; fileInput.value = '';
         } catch(err) { toast(err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
@@ -777,11 +777,33 @@ async function uploadProductsExcel() {
 
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
-    let snap = await db.collection('products').orderBy('timestamp', 'desc').limit(50).get();
-    snap.docs.forEach(doc => {
-        let p = doc.data(); tb.innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete().then(loadAdminProducts)">✖️</button></td></tr>`;
-    });
+    $('loader').classList.remove('hidden');
+    db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+        if(!$('productsTable')) return;
+        $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
+        snap.forEach(doc => {
+            let p = doc.data(); 
+            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
+        });
+        $('loader').classList.add('hidden');
+    }, err => { $('loader').classList.add('hidden'); });
+}
+
+async function deleteAllProducts() {
+    if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('products').where('adminId', '==', currentUser.uid).get();
+        const batch = db.batch();
+        snap.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        toast('تم مسح جميع المنتجات بنجاح', 'success');
+    } catch (err) {
+        toast('خطأ في مسح المنتجات: ' + err.message, 'error');
+    }
+    $('loader').classList.add('hidden');
 }
 async function uploadStockExcel() {
     let comp = $('stockCompany').value.trim(), fileInput = $('stockFile');
