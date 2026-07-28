@@ -91,7 +91,7 @@ async function login() {
             let user = snap.docs[0].data();
             let profileSnap = await db.collection('users').doc(user.uid).get();
             let profile = profileSnap.exists ? profileSnap.data() : null;
-            let isAdmin = (profile && profile.role === 'admin') || ADMIN_EMAILS.includes(e.toLowerCase());
+            let isAdmin = (profile && profile.role === 'admin');
             if (loginMode === 'admin' && !isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'غير مصرح لك بالدخول للإدارة.'; $('authError').style.display = 'block'; return; }
             if (loginMode === 'promoter' && isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'يرجى الدخول من تبويب الإدارة.'; $('authError').style.display = 'block'; return; }
             localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
@@ -210,7 +210,7 @@ let cachedProducts = [];
 async function initPromoterSales() {
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').where('company', '==', userData.company).get();
+        let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let select = $('sCode');
         if(select) {
@@ -278,13 +278,14 @@ async function submitSale() {
         }
 
         await db.collection('sales').doc().set({
-            uid: currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
+        uid: currentUser.uid,
+        adminId: userData.adminId || currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
             itemCode: c, price: Number(p), description: desc, commission: commEarned, imageUrl: imageUrl,
             date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0], timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         
         try {
-            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).get();
+            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).where('adminId', '==', userData.adminId || currentUser.uid).get();
             if (!stockSnap.empty) {
                 let stockDoc = stockSnap.docs[0];
                 let currentQty = Number(stockDoc.data().quantity);
@@ -545,7 +546,7 @@ async function adminAddUser() {
         if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('مسجل بالفعل', 'error'); }
         let uid = editingUserUid || 'usr_' + Date.now();
         await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
-        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm });
+        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid });
         toast('تم الحفظ', 'success'); cancelEditUser(); loadAdminUsers();
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
@@ -601,7 +602,7 @@ async function uploadProductsExcel() {
             const batch = db.batch();
             for(let i = 1; i < json.length; i++) {
                 if(json[i].length >= 3 && json[i][0]) {
-                    batch.set(db.collection('products').doc(), { company: comp, itemCode: String(json[i][0]), description: String(json[i][1]), price: Number(json[i][2]), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    batch.set(db.collection('products').doc(), { adminId: currentUser.uid, company: comp, itemCode: String(json[i][0]), description: String(json[i][1]), price: Number(json[i][2]), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 }
             }
             await batch.commit(); toast('تم الرفع', 'success'); $('prodCompany').value = ''; fileInput.value = ''; loadAdminProducts();
@@ -648,7 +649,7 @@ async function uploadStockExcel() {
 function loadAdminStock() {
     let tb = $('stockTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    db.collection('company_stock').onSnapshot(snap => {
+    db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('stockTable')) return;
         $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
         snap.forEach(doc => {
@@ -671,7 +672,7 @@ async function loadAllAttendance() {
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
-            let uSnap = await db.collection('users').get();
+            let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
             cachedAdminUsers = uSnap.docs.map(d => d.data());
         }
         let snap = await db.collection('attendance').orderBy('date', 'desc').limit(100).get();
@@ -740,9 +741,9 @@ async function syncOfflineData() {
         let atts = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
         for (let s of sales) {
             s.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-            await db.collection('sales').doc().set(s);
+            s.adminId = userData.adminId || currentUser.uid; await db.collection('sales').doc().set(s);
             try {
-                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).get();
+                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).where('adminId', '==', userData.adminId || currentUser.uid).get();
                 if (!stockSnap.empty) {
                     let stockDoc = stockSnap.docs[0];
                     let currentQty = Number(stockDoc.data().quantity);
