@@ -156,7 +156,7 @@ if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-/* Offline persistence disabled to prevent query hanging on login */
+db.enablePersistence().catch(err => console.log('Offline mode err:', err));
 
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
@@ -182,7 +182,7 @@ let adminEmail = 'tetoabdallah@gmail.com';
 db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get().then(snap => {
     if (snap.empty) {
         db.collection('auth_users').doc('admin_root').set({uid: 'admin_root', email: adminEmail, password: 'admin'});
-        db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main', adminId: uid });
+        db.collection('users').doc('admin_root').set({ uid: 'admin_root', email: adminEmail, role: 'admin', promoterCode: 'ADMIN', branch: 'Main', company: 'Main', adminId: 'admin_root' });
     }
 }).catch(e => console.log(e));
 
