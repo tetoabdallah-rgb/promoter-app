@@ -344,7 +344,7 @@ function nav(page) {
     }
     else if (page === 'admin_companies') {
         title = t('admin_companies');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button></div><div class="search-bar"><input type="text" id="s_stockTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_stockTable', 'stockTable')"><button class="btn export-btn" onclick="exportTableToExcel('stockTable', 'Stock')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllStock()">مسح جميع المنتجات 🗑️</button></div></div><div class="search-bar"><input type="text" id="s_stockTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_stockTable', 'stockTable')"><button class="btn export-btn" onclick="exportTableToExcel('stockTable', 'Stock')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
         setTimeout(loadAdminStock, 100);
     }
     else if (page === 'admin_attendance') {
@@ -373,12 +373,12 @@ let cachedProducts = [];
 async function initPromoterSales() {
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
+        let snap = await db.collection('company_stock').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let select = $('sCode');
         if(select) {
             select.innerHTML = `<option value="">اختر الصنف</option>`;
-            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.code}">${p.code} - ${p.name}</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -797,7 +797,7 @@ async function uploadStockExcel() {
                 let row = json[i];
                 if(row.length > 0) {
                     let docRef = db.collection('company_stock').doc();
-                    batch.set(docRef, { company: comp, code: row[0]||'', name: row[1]||'', price: row[2]||0, quantity: row[3]||0 });
+                    batch.set(docRef, { company: comp, code: String(row[0]||''), name: String(row[1]||''), price: Number(row[2]||0), quantity: Number(row[3]||0), adminId: currentUser.uid });
                 }
             }
             await batch.commit();
@@ -822,6 +822,23 @@ function loadAdminStock() {
         });
         $('loader').classList.add('hidden');
     }, err => { $('loader').classList.add('hidden'); });
+}
+
+async function deleteAllStock() {
+    if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('company_stock').where('adminId', '==', currentUser.uid).get();
+        const batch = db.batch();
+        snap.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+        toast('تم مسح جميع المنتجات بنجاح', 'success');
+    } catch (err) {
+        toast('خطأ في مسح المنتجات: ' + err.message, 'error');
+    }
+    $('loader').classList.add('hidden');
 }
 
 async function deleteStock(id) {
