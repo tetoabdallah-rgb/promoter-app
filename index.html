@@ -755,22 +755,59 @@ async function deleteUser(uid) {
 }
 
 async function uploadProductsExcel() {
-    let comp = $('prodCompany').value.trim(), fileInput = $('prodFile');
-    if(!comp || !fileInput.files.length) return toast('يرجى تعبئة الحقول', 'error');
+    let compInput = $('prodCompany').value.trim(), fileInput = $('prodFile');
+    if(!fileInput.files.length) return toast('يرجى اختيار ملف الإكسيل', 'error');
+    
     $('loader').classList.remove('hidden');
     let reader = new FileReader();
     reader.onload = async function(e) {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            if(json.length < 2) throw new Error("الملف فارغ");
+            
+            // Detect format: Exported format has 4+ columns and first column is usually 'الشركة'
+            let isExportFormat = (json[0] && json[0].length >= 4 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
+            
+            if(!compInput && !isExportFormat) {
+                $('loader').classList.add('hidden');
+                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
+            }
+
             const batch = db.batch();
             for(let i = 1; i < json.length; i++) {
-                if(json[i].length >= 3 && json[i][0]) {
-                    batch.set(db.collection('products').doc(), { adminId: currentUser.uid, company: comp, itemCode: String(json[i][0]), description: String(json[i][1]), price: Number(json[i][2]), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                let row = json[i];
+                if(row.length > 0) {
+                    let c, code, desc, price;
+                    if(isExportFormat) {
+                        c = row[0] ? String(row[0]).trim() : compInput;
+                        code = String(row[1] || '');
+                        desc = String(row[2] || '');
+                        price = Number(row[3] || 0);
+                    } else {
+                        c = compInput;
+                        code = String(row[0] || '');
+                        desc = String(row[1] || '');
+                        price = Number(row[2] || 0);
+                    }
+                    
+                    if(code && code !== 'undefined') {
+                        batch.set(db.collection('products').doc(), { 
+                            adminId: currentUser.uid, 
+                            company: c || 'بدون شركة', 
+                            itemCode: code, 
+                            description: desc, 
+                            price: price, 
+                            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                        });
+                    }
                 }
             }
-            await batch.commit(); toast('تم الرفع', 'success'); $('prodCompany').value = ''; fileInput.value = '';
-        } catch(err) { toast(err.message, 'error'); }
+            await batch.commit(); 
+            toast('تم الرفع بنجاح', 'success'); 
+            $('prodCompany').value = ''; 
+            fileInput.value = '';
+        } catch(err) { console.error('Upload Error:', err); toast(err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
     reader.readAsArrayBuffer(fileInput.files[0]);
@@ -787,7 +824,7 @@ async function loadAdminProducts() {
             $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
         });
         $('loader').classList.add('hidden');
-    }, err => { $('loader').classList.add('hidden'); });
+    }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
 }
 
 async function deleteAllProducts() {
@@ -807,26 +844,61 @@ async function deleteAllProducts() {
     $('loader').classList.add('hidden');
 }
 async function uploadStockExcel() {
-    let comp = $('stockCompany').value.trim(), fileInput = $('stockFile');
-    if(!comp || !fileInput.files.length) return toast(t('fill_fields'), 'error');
+    let compInput = $('stockCompany').value.trim(), fileInput = $('stockFile');
+    if(!fileInput.files.length) return toast(t('fill_fields'), 'error');
+    
     $('loader').classList.remove('hidden');
     let reader = new FileReader();
     reader.onload = async function(e) {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            if(json.length < 2) throw new Error("الملف فارغ");
+            
+            let isExportFormat = (json[0] && json[0].length >= 5 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
+            
+            if(!compInput && !isExportFormat) {
+                $('loader').classList.add('hidden');
+                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
+            }
+
             const batch = db.batch();
             for(let i = 1; i < json.length; i++) {
                 let row = json[i];
                 if(row.length > 0) {
-                    let docRef = db.collection('company_stock').doc();
-                    batch.set(docRef, { company: comp, code: String(row[0]||''), name: String(row[1]||''), price: Number(row[2]||0), quantity: Number(row[3]||0), adminId: currentUser.uid });
+                    let c, code, name, price, qty;
+                    if(isExportFormat) {
+                        c = row[0] ? String(row[0]).trim() : compInput;
+                        code = String(row[1] || '');
+                        name = String(row[2] || '');
+                        price = Number(row[3] || 0);
+                        qty = Number(row[4] || 0);
+                    } else {
+                        c = compInput;
+                        code = String(row[0] || '');
+                        name = String(row[1] || '');
+                        price = Number(row[2] || 0);
+                        qty = Number(row[3] || 0);
+                    }
+                    
+                    if(code && code !== 'undefined') {
+                        let docRef = db.collection('company_stock').doc();
+                        batch.set(docRef, { 
+                            company: c || 'بدون شركة', 
+                            code: code, 
+                            name: name, 
+                            price: price, 
+                            quantity: qty, 
+                            adminId: currentUser.uid 
+                        });
+                    }
                 }
             }
             await batch.commit();
-            toast(t('upload_success'), 'success'); $('stockCompany').value = ''; fileInput.value = '';
-            loadAdminStock();
-        } catch(err) { toast('Error parsing Excel: '+err.message, 'error'); }
+            toast(t('upload_success'), 'success'); 
+            $('stockCompany').value = ''; 
+            fileInput.value = '';
+        } catch(err) { console.error('Upload Error:', err); toast('Error parsing Excel: '+err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
     reader.readAsArrayBuffer(fileInput.files[0]);
