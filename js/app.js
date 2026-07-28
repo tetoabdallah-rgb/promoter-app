@@ -115,7 +115,7 @@ async function login() {
         } else {
             $('loader').classList.add('hidden'); $('authError').innerText = 'البيانات غير صحيحة.'; $('authError').style.display = 'block';
         }
-    } catch(err) { $('loader').classList.add('hidden'); toast('خطأ في الاتصال', 'error'); }
+    } catch(err) { $('loader').classList.add('hidden'); toast(`خطأ: ${err.message}`, 'error'); }
 }
 
 async function registerAdmin() {
