@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'promoter-cache-v25';
+﻿const CACHE_NAME = 'promoter-cache-v26';
 const urlsToCache = [
   './',
   './index.html',
@@ -36,5 +36,6 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
 
 
