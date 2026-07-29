@@ -140,21 +140,16 @@ function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        if (!userData.permissions || userData.permissions.admin_dash !== false) links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_sales !== false) links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_promoters !== false) links += `<li onclick="nav('admin_promoters')">👥 إدارة المروجين</li>`;
-        if (!userData.permissions || userData.permissions.admin_subadmins !== false) links += `<li onclick="nav('admin_subadmins')">👑 إدارة المديرين</li>`;
-        if (!userData.permissions || userData.permissions.admin_attendance !== false) links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_products !== false) links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_companies !== false) links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
+        links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
+        links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
+        links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
+        links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
+        links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
+        links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
     } else {
         links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
-        if (!userData.permissions || userData.permissions.sales !== false) {
-            links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
-        }
-        if (!userData.permissions || userData.permissions.attendance !== false) {
-            links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
-        }
+        links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
+        links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
     }
     $('navLinks').innerHTML = links;
     setTimeout(() => { let lis = $('navLinks').querySelectorAll('li'); if(lis.length > 0) lis[0].click(); }, 100);
@@ -172,7 +167,7 @@ function nav(page) {
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><div style="display:flex; gap:5px;"><input list="productsList" id="sCode" class="input-box" onchange="autoFillProductDetails()" oninput="autoFillProductDetails()" placeholder="ابحث عن الكود..." style="flex:1;"><datalist id="productsList"></datalist><button class="btn btn-primary" onclick="startScanner()" style="padding:0 10px; flex-shrink:0;">📸</button></div><div id="reader" style="width:100%; display:none; margin-top:5px; border-radius:5px; overflow:hidden;"></div></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')} 📷</label><input type="file" id="sPhoto" class="input-box" accept="image/*" capture="environment"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><div style="display:flex; gap:5px;"><select id="sCode" class="input-box" onchange="autoFillProductDetails()" style="flex:1;"></select><button class="btn btn-primary" onclick="startScanner()" style="padding:0 10px; flex-shrink:0;">📸</button></div><div id="reader" style="width:100%; display:none; margin-top:5px; border-radius:5px; overflow:hidden;"></div></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')} 📷</label><input type="file" id="sPhoto" class="input-box" accept="image/*" capture="environment"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
@@ -182,7 +177,7 @@ function nav(page) {
     }
     else if (page === 'admin_sales') {
         title = t('admin_sales');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>من تاريخ</label><input type="date" id="saleFromDate" class="input-box"></div><div class="fg"><label>إلى تاريخ</label><input type="date" id="saleToDate" class="input-box"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="loadAllSales()">${t('search')} 🔍</button></div><div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><div style="display:flex; gap:10px;"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button><button class="btn btn-success" style="background:var(--gn); color:#fff;" onclick="generatePayroll()">تقفيل الشهر 💰</button></div></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
+        content = `<div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
         setTimeout(loadAllSales, 100);
     }
     else if (page === 'admin_dash') {
@@ -190,15 +185,10 @@ function nav(page) {
         content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
-    else if (page === 'admin_promoters') {
-        title = 'إدارة المروجين';
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة مروج جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter" selected>${t('role_promoter')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="grid-column: span 3;"><label>صلاحيات المروج</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermSales" checked> إضافة مبيعات</label><label><input type="checkbox" id="nuPermAtt" checked> تسجيل حضور</label><label><input type="checkbox" id="nuPermPrice" checked> رؤية الأسعار</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('promoter')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('promoter')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
-        setTimeout(() => loadAdminUsers('promoter'), 100);
-    }
-    else if (page === 'admin_subadmins') {
-        title = 'إدارة المديرين والمشرفين';
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة مدير/مشرف جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="admin" selected>${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')} (اختياري)</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')} (اختياري)</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg" style="grid-column: span 3;"><label>صلاحيات لوحة التحكم للإدمن</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermAdminDash" checked> الإحصائيات (Dashboard)</label><label><input type="checkbox" id="nuPermAdminSales" checked> رؤية المبيعات</label><label><input type="checkbox" id="nuPermAdminPromoters" checked> إدارة المروجين</label><label><input type="checkbox" id="nuPermAdminSubadmins" checked> إدارة المديرين</label><label><input type="checkbox" id="nuPermAdminAtt" checked> الحضور</label><label><input type="checkbox" id="nuPermAdminProd" checked> المنتجات</label><label><input type="checkbox" id="nuPermAdminComp" checked> الشركات والمخزون</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('admin')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('admin')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Admins')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
-        setTimeout(() => loadAdminUsers('admin'), 100);
+    else if (page === 'admin_users') {
+        title = t('admin_users');
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        setTimeout(loadAdminUsers, 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
@@ -238,10 +228,10 @@ async function initPromoterSales() {
     try {
         let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        let list = $('productsList');
-        if(list) {
-            list.innerHTML = '';
-            cachedProducts.forEach(p => { list.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
+        let select = $('sCode');
+        if(select) {
+            select.innerHTML = `<option value="">اختر الصنف</option>`;
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -271,23 +261,11 @@ function startScanner() {
 
 function autoFillProductDetails() {
     let prod = cachedProducts.find(p => p.itemCode === $('sCode').value);
-    if(prod) { 
-        if(userData.permissions && userData.permissions.price === false) {
-            $('sPrice').type = 'text'; $('sPrice').value = '***';
-        } else {
-            $('sPrice').type = 'number'; $('sPrice').value = prod.price;
-        }
-        $('sDesc').value = prod.description; 
-    } else { 
-        $('sPrice').value = ''; $('sDesc').value = ''; 
-    }
+    if(prod) { $('sPrice').value = prod.price; $('sDesc').value = prod.description; } else { $('sPrice').value = ''; $('sDesc').value = ''; }
 }
 
 async function submitSale() {
     let c = $('sCode').value, p = $('sPrice').value, desc = $('sDesc').value, photo = $('sPhoto').files[0];
-    let prod = cachedProducts.find(x => x.itemCode === c);
-    if (prod && (userData.permissions && userData.permissions.price === false)) p = prod.price;
-    if(p === '***' && prod) p = prod.price;
     if(!c || !p) return toast('يرجى اختيار الصنف', 'error');
     $('loader').classList.remove('hidden');
     try {
@@ -346,15 +324,13 @@ async function loadMySales() {
     tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
-        let index = 0;
         snap.docs.forEach(doc => {
             let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
             let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
-            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
-            index++;
+            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
     } catch(err) {}
-    $('loader').classList.remove('hidden');
+    $('loader').classList.add('hidden');
 }
 
 function printReceipt(code, price, date) {
@@ -413,7 +389,7 @@ async function markAttendance(slot) {
             pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`, b64); },
             err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null, b64); }
         );
-    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.remove('hidden'); }
+    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.add('hidden'); }
 }
 
 async function processAttendance(slot, loc, photoBase64) {
@@ -426,7 +402,7 @@ async function processAttendance(slot, loc, photoBase64) {
         toast('تم حفظ الحضور محلياً. لا تنسَ المزامنة!', 'success');
         if($('attPhoto')) $('attPhoto').value = '';
         checkOfflineQueue();
-        $('loader').classList.remove('hidden');
+        $('loader').classList.add('hidden');
         return;
     }
 
@@ -441,7 +417,7 @@ async function processAttendance(slot, loc, photoBase64) {
         toast('تم الحضور', 'success'); 
         if($('attPhoto')) $('attPhoto').value = '';
         loadMyAttendance();
-    } catch(err) { toast(err.message, 'error'); $('loader').classList.remove('hidden'); }
+    } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
 }
 
 let breakIntervals = {};
@@ -467,7 +443,7 @@ async function toggleBreak(b) {
         }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.remove('hidden');
+    $('loader').classList.add('hidden');
 }
 
 function setupBreakUI(b, breakData) {
@@ -512,157 +488,42 @@ async function loadMyAttendance() {
     try {
         let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
         let today = new Date().toISOString().split('T')[0];
-        let index = 0;
         snap.docs.forEach(doc => {
             let d = doc.data();
             let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
-            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
             if (d.date === today && $('btnBreak1')) {
                 setupBreakUI(1, d.break1);
                 setupBreakUI(2, d.break2);
             }
-            index++;
         });
     } catch(err) {}
 }
 
 async function loadAllSales() {
     let tb = $('allSalesTable'); if(!tb) return;
-    $('loader').classList.remove('hidden');
+    tb.innerHTML = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
     try {
-        let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
-        let toDate = $('saleToDate') ? $('saleToDate').value : '';
-        
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
-        let docs = snap.docs.map(d => d.data());
-        
-        if (fromDate) docs = docs.filter(d => d.date >= fromDate);
-        if (toDate) docs = docs.filter(d => d.date <= toDate);
-        docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
-        
-        let grouped = {};
-        docs.forEach(d => {
-            let comp = d.company || 'بدون شركة';
-            let br = d.branch || 'بدون فرع';
-            if (!grouped[comp]) grouped[comp] = {};
-            if (!grouped[comp][br]) grouped[comp][br] = [];
-            grouped[comp][br].push(d);
+        let snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(50).get();
+        snap.docs.forEach(doc => {
+            let d = doc.data(), img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
+            tb.innerHTML += `<tr><td>${d.company} / ${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
         });
-        
-        let html = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
-        let index = 0;
-        for (let comp in grouped) {
-            let compSales = 0;
-            Object.keys(grouped[comp]).forEach(br => { grouped[comp][br].forEach(x => compSales += Number(x.price)); });
-            
-            html += `<tr class="animate-row" style="background:rgba(59, 130, 246, 0.2); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:center; font-weight:bold; color:var(--am);">🏢 شركة: ${comp} (الإجمالي: ${compSales})</td></tr>`;
-            index++;
-            
-            for (let br in grouped[comp]) {
-                let brSales = 0;
-                grouped[comp][br].forEach(x => brSales += Number(x.price));
-                html += `<tr class="animate-row" style="background:rgba(255, 255, 255, 0.05); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:right; font-weight:bold; color:#f59e0b;">📍 فرع: ${br} (الإجمالي: ${brSales})</td></tr>`;
-                index++;
-                
-                grouped[comp][br].slice(0, 150).forEach(d => {
-                    let img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
-                    html += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>-</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
-                    index++;
-                });
-            }
-        }
-        tb.innerHTML = html;
-    } catch(err) { console.error(err); }
-    $('loader').classList.add('hidden');
-}
-
-async function generatePayroll() {
-    let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
-    let toDate = $('saleToDate') ? $('saleToDate').value : '';
-    if (!fromDate || !toDate) return toast('يرجى تحديد (من تاريخ) و (إلى تاريخ) أولاً لتقفيل الشهر', 'error');
-    
-    $('loader').classList.remove('hidden');
-    try {
-        let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
-        let promoters = {};
-        uSnap.docs.forEach(d => {
-            let u = d.data();
-            if (u.role !== 'admin' && u.role !== 'supervisor') {
-                promoters[u.uid] = { 
-                    name: u.email.split('@')[0], 
-                    code: u.promoterCode, 
-                    target: Number(u.target) || 0,
-                    commissionRate: Number(u.commissionRate) || 0,
-                    totalSales: 0, 
-                    commissionEarned: 0, 
-                    attendanceDays: 0 
-                };
-            }
-        });
-
-        let sSnap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
-        sSnap.docs.forEach(doc => {
-            let s = doc.data();
-            if (s.date >= fromDate && s.date <= toDate) {
-                if (promoters[s.uid]) {
-                    promoters[s.uid].totalSales += Number(s.price);
-                    promoters[s.uid].commissionEarned += Number(s.commission || 0);
-                }
-            }
-        });
-
-        let aSnap = await db.collection('attendance').get();
-        aSnap.docs.forEach(doc => {
-            let a = doc.data();
-            if (a.date >= fromDate && a.date <= toDate) {
-                if (promoters[a.uid]) {
-                    if (a.slot1 || a.slot2) promoters[a.uid].attendanceDays++;
-                }
-            }
-        });
-
-        let excelData = [];
-        for (let uid in promoters) {
-            let p = promoters[uid];
-            excelData.push({
-                "اسم البروموتر": p.name,
-                "كود البروموتر": p.code,
-                "التارجت المطلوب": p.target,
-                "إجمالي المبيعات": p.totalSales,
-                "نسبة العمولة": p.commissionRate + "%",
-                "العمولة المستحقة": p.commissionEarned,
-                "أيام الحضور": p.attendanceDays
-            });
-        }
-        
-        let ws = XLSX.utils.json_to_sheet(excelData);
-        let wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Payroll");
-        XLSX.writeFile(wb, `Payroll_${fromDate}_to_${toDate}.xlsx`);
-        toast('تم استخراج الشيت بنجاح!', 'success');
-        
-    } catch(err) { console.error(err); toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    } catch(err) {}
 }
 
 async function loadDashboard() {
     let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
     try {
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get(); 
-        
-        let docs = snap.docs.map(d => d.data());
-        docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
-        let recentDocs = docs.slice(0, 1000); // Process last 1000 sales
-        
-        recentDocs.forEach(d => {
-            compObj[d.company] = (compObj[d.company] || 0) + Number(d.price); 
-            brObj[d.branch] = (brObj[d.branch] || 0) + Number(d.price);
+        let snap = await db.collection('sales').limit(200).get(); 
+        snap.docs.forEach(doc => {
+            let d = doc.data();
+            compObj[d.company] = (compObj[d.company] || 0) + d.price; brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
             if(!prodObj[d.company]) prodObj[d.company] = {};
-            prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + Number(d.price);
-            promoterObj[d.promoterCode] = (promoterObj[d.promoterCode] || 0) + Number(d.price);
+            prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + d.price;
+            promoterObj[d.promoterCode] = (promoterObj[d.promoterCode] || 0) + d.price;
         });
-        
         if(chart1) chart1.destroy();
         chart1 = new Chart(document.getElementById('companyChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
         if(chart2) chart2.destroy();
@@ -688,46 +549,26 @@ async function loadDashboard() {
             let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
             tpCont.innerHTML += `<div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;"><h4 style="color:var(--am); margin-bottom:10px;">${c}</h4><ul style="list-style:none; padding:0;">${prodsHtml}</ul></div>`;
         }
-    } catch(err) { console.error('Dashboard Load Error:', err); }
+    } catch(err) {}
 }
 
 let cachedAdminUsers = [], cachedAdminAuthUsers = [];
-async function adminAddUser(forceRole) {
-    let e = $('nuEmail').value.trim(), p = $('nuPass').value.trim(), comp = $('nuCompany') ? $('nuCompany').value.trim() : '', br = $('nuBranch') ? $('nuBranch').value.trim() : '', code = $('nuCode') ? $('nuCode').value.trim() : '', tgt = $('nuTarget') ? (Number($('nuTarget').value) || 0) : 0, comm = $('nuCommission') ? (Number($('nuCommission').value) || 0) : 0, r = forceRole || ($('nuRole') ? $('nuRole').value : 'promoter');
+async function adminAddUser() {
+    let e = $('nuEmail').value.trim(), p = $('nuPass').value.trim(), comp = $('nuCompany').value.trim(), br = $('nuBranch').value.trim(), code = $('nuCode').value.trim(), tgt = Number($('nuTarget').value) || 0, comm = Number($('nuCommission').value) || 0, r = $('nuRole').value;
     if(!e || !p) return toast('يرجى التعبئة', 'error');
-    
-    let perms = {};
-    if (r === 'promoter') {
-        perms = {
-            sales: $('nuPermSales') ? $('nuPermSales').checked : true,
-            attendance: $('nuPermAtt') ? $('nuPermAtt').checked : true,
-            price: $('nuPermPrice') ? $('nuPermPrice').checked : true
-        };
-    } else {
-        perms = {
-            admin_dash: $('nuPermAdminDash') ? $('nuPermAdminDash').checked : true,
-            admin_sales: $('nuPermAdminSales') ? $('nuPermAdminSales').checked : true,
-            admin_promoters: $('nuPermAdminPromoters') ? $('nuPermAdminPromoters').checked : true,
-            admin_subadmins: $('nuPermAdminSubadmins') ? $('nuPermAdminSubadmins').checked : true,
-            admin_attendance: $('nuPermAdminAtt') ? $('nuPermAdminAtt').checked : true,
-            admin_products: $('nuPermAdminProd') ? $('nuPermAdminProd').checked : true,
-            admin_companies: $('nuPermAdminComp') ? $('nuPermAdminComp').checked : true
-        };
-    }
-    
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).get();
         if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('مسجل بالفعل', 'error'); }
         let uid = editingUserUid || 'usr_' + Date.now();
         await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
-        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid, permissions: perms });
-        toast('تم الحفظ', 'success'); cancelEditUser(r); loadAdminUsers(r);
+        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid });
+        toast('تم الحفظ', 'success'); cancelEditUser(); loadAdminUsers();
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
 
-async function loadAdminUsers(filterRole) {
+async function loadAdminUsers() {
     let tb = $('usersTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
     try {
@@ -736,26 +577,11 @@ async function loadAdminUsers(filterRole) {
             db.collection('users').onSnapshot(snap2 => {
                 cachedAdminUsers = snap2.docs.map(d => d.data());
                 if(!$('usersTable')) return;
-                
-                let filtered = cachedAdminUsers.filter(u => filterRole ? u.role === filterRole : true);
-                
-                if (filterRole === 'promoter') {
-                    $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
-                } else {
-                    $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('action')}</th></tr>`;
-                }
-                
-                let index = 0;
-                filtered.forEach(u => {
-                    if (filterRole === 'promoter') {
-                        let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%;"></div></div>` : '';
-                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
-                    } else {
-                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company || '-'} / ${u.branch || '-'}</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
-                    }
-                    index++;
+                $('usersTable').innerHTML = `<tr><th>${t('role')}</th><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
+                cachedAdminUsers.forEach(u => {
+                    let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
+                    $('usersTable').innerHTML += `<tr><td><span class="badge">${u.role}</span></td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
+                        <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
                 });
                 $('loader').classList.add('hidden');
             });
@@ -765,133 +591,38 @@ async function loadAdminUsers(filterRole) {
     }
 }
 
-function editUser(uid, role) {
+function editUser(uid) {
     let u = cachedAdminUsers.find(x => x.uid === uid), au = cachedAdminAuthUsers.find(x => x.uid === uid);
     if(!u || !au) return;
     editingUserUid = uid;
-    $('nuEmail').value = u.email; $('nuPass').value = au.password; 
-    if($('nuCompany')) $('nuCompany').value = u.company || ''; 
-    if($('nuBranch')) $('nuBranch').value = u.branch || ''; 
-    if($('nuCode')) $('nuCode').value = u.promoterCode || ''; 
-    if($('nuTarget')) $('nuTarget').value = u.target || 0; 
-    if($('nuCommission')) $('nuCommission').value = u.commissionRate || 0; 
-    if($('nuRole')) $('nuRole').value = u.role || 'promoter';
-    
-    if (role === 'promoter') {
-        if(u.permissions) {
-            if($('nuPermSales')) $('nuPermSales').checked = u.permissions.sales !== false;
-            if($('nuPermAtt')) $('nuPermAtt').checked = u.permissions.attendance !== false;
-            if($('nuPermPrice')) $('nuPermPrice').checked = u.permissions.price !== false;
-        } else {
-            if($('nuPermSales')) $('nuPermSales').checked = true;
-            if($('nuPermAtt')) $('nuPermAtt').checked = true;
-            if($('nuPermPrice')) $('nuPermPrice').checked = true;
-        }
-    } else {
-        if(u.permissions) {
-            if($('nuPermAdminDash')) $('nuPermAdminDash').checked = u.permissions.admin_dash !== false;
-            if($('nuPermAdminSales')) $('nuPermAdminSales').checked = u.permissions.admin_sales !== false;
-            if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = u.permissions.admin_promoters !== false;
-            if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = u.permissions.admin_subadmins !== false;
-            if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = u.permissions.admin_attendance !== false;
-            if($('nuPermAdminProd')) $('nuPermAdminProd').checked = u.permissions.admin_products !== false;
-            if($('nuPermAdminComp')) $('nuPermAdminComp').checked = u.permissions.admin_companies !== false;
-        } else {
-            if($('nuPermAdminDash')) $('nuPermAdminDash').checked = true;
-            if($('nuPermAdminSales')) $('nuPermAdminSales').checked = true;
-            if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = true;
-            if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = true;
-            if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = true;
-            if($('nuPermAdminProd')) $('nuPermAdminProd').checked = true;
-            if($('nuPermAdminComp')) $('nuPermAdminComp').checked = true;
-        }
-    }
-
+    $('nuEmail').value = u.email; $('nuPass').value = au.password; $('nuCompany').value = u.company; $('nuBranch').value = u.branch; $('nuCode').value = u.promoterCode; $('nuTarget').value = u.target || 0; $('nuCommission').value = u.commissionRate || 0; $('nuRole').value = u.role || 'promoter';
     $('formUserTitle').innerText = 'تعديل بيانات الحساب'; $('btnUserAction').innerText = 'حفظ 💾'; $('btnUserCancel').classList.remove('hidden'); window.scrollTo({top: 0, behavior: 'smooth'});
 }
-function cancelEditUser(role) {
-    editingUserUid = null; $('nuEmail').value = ''; $('nuPass').value = ''; 
-    if($('nuCompany')) $('nuCompany').value = ''; 
-    if($('nuBranch')) $('nuBranch').value = ''; 
-    if($('nuCode')) $('nuCode').value = ''; 
-    if($('nuTarget')) $('nuTarget').value = ''; 
-    if($('nuCommission')) $('nuCommission').value = ''; 
-    
-    $('btnUserAction').innerText = 'إضافة ➕'; $('btnUserCancel').classList.add('hidden');
-    
-    if (role === 'promoter') {
-        if($('nuPermSales')) $('nuPermSales').checked = true;
-        if($('nuPermAtt')) $('nuPermAtt').checked = true;
-        if($('nuPermPrice')) $('nuPermPrice').checked = true;
-    } else {
-        if($('nuPermAdminDash')) $('nuPermAdminDash').checked = true;
-        if($('nuPermAdminSales')) $('nuPermAdminSales').checked = true;
-        if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = true;
-        if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = true;
-        if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = true;
-        if($('nuPermAdminProd')) $('nuPermAdminProd').checked = true;
-        if($('nuPermAdminComp')) $('nuPermAdminComp').checked = true;
-    }
+function cancelEditUser() {
+    editingUserUid = null; $('nuEmail').value = ''; $('nuPass').value = ''; $('nuCompany').value = ''; $('nuBranch').value = ''; $('nuCode').value = ''; $('nuTarget').value = ''; $('nuCommission').value = ''; $('btnUserAction').innerText = 'إضافة ➕'; $('btnUserCancel').classList.add('hidden');
 }
-async function deleteUser(uid, role) {
+async function deleteUser(uid) {
     if(!confirm('حذف؟')) return;
-    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers(role);
+    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers();
 }
 
 async function uploadProductsExcel() {
-    let compInput = $('prodCompany').value.trim(), fileInput = $('prodFile');
-    if(!fileInput.files.length) return toast('يرجى اختيار ملف الإكسيل', 'error');
-    
+    let comp = $('prodCompany').value.trim(), fileInput = $('prodFile');
+    if(!comp || !fileInput.files.length) return toast('يرجى تعبئة الحقول', 'error');
     $('loader').classList.remove('hidden');
     let reader = new FileReader();
     reader.onload = async function(e) {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-            if(json.length < 2) throw new Error("الملف فارغ");
-            
-            // Detect format: Exported format has 4+ columns and first column is usually 'الشركة'
-            let isExportFormat = (json[0] && json[0].length >= 4 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
-            
-            if(!compInput && !isExportFormat) {
-                $('loader').classList.add('hidden');
-                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
-            }
-
             const batch = db.batch();
             for(let i = 1; i < json.length; i++) {
-                let row = json[i];
-                if(row.length > 0) {
-                    let c, code, desc, price;
-                    if(isExportFormat) {
-                        c = row[0] ? String(row[0]).trim() : compInput;
-                        code = String(row[1] || '');
-                        desc = String(row[2] || '');
-                        price = Number(row[3] || 0);
-                    } else {
-                        c = compInput;
-                        code = String(row[0] || '');
-                        desc = String(row[1] || '');
-                        price = Number(row[2] || 0);
-                    }
-                    
-                    if(code && code !== 'undefined') {
-                        batch.set(db.collection('products').doc(), { 
-                            adminId: currentUser.uid, 
-                            company: c || 'بدون شركة', 
-                            itemCode: code, 
-                            description: desc, 
-                            price: price, 
-                            timestamp: firebase.firestore.FieldValue.serverTimestamp() 
-                        });
-                    }
+                if(json[i].length >= 3 && json[i][0]) {
+                    batch.set(db.collection('products').doc(), { adminId: currentUser.uid, company: comp, itemCode: String(json[i][0]), description: String(json[i][1]), price: Number(json[i][2]), timestamp: firebase.firestore.FieldValue.serverTimestamp() });
                 }
             }
-            await batch.commit(); 
-            toast('تم الرفع بنجاح', 'success'); 
-            $('prodCompany').value = ''; 
-            fileInput.value = '';
-        } catch(err) { console.error('Upload Error:', err); toast(err.message, 'error'); }
+            await batch.commit(); toast('تم الرفع', 'success'); $('prodCompany').value = ''; fileInput.value = '';
+        } catch(err) { toast(err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
     reader.readAsArrayBuffer(fileInput.files[0]);
@@ -903,14 +634,12 @@ async function loadAdminProducts() {
     db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('productsTable')) return;
         $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
-        let index = 0;
         snap.forEach(doc => {
             let p = doc.data(); 
-            $('productsTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
-            index++;
+            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
         });
         $('loader').classList.add('hidden');
-    }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
+    }, err => { $('loader').classList.add('hidden'); });
 }
 
 async function deleteAllProducts() {
@@ -930,61 +659,26 @@ async function deleteAllProducts() {
     $('loader').classList.add('hidden');
 }
 async function uploadStockExcel() {
-    let compInput = $('stockCompany').value.trim(), fileInput = $('stockFile');
-    if(!fileInput.files.length) return toast(t('fill_fields'), 'error');
-    
+    let comp = $('stockCompany').value.trim(), fileInput = $('stockFile');
+    if(!comp || !fileInput.files.length) return toast(t('fill_fields'), 'error');
     $('loader').classList.remove('hidden');
     let reader = new FileReader();
     reader.onload = async function(e) {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-            if(json.length < 2) throw new Error("الملف فارغ");
-            
-            let isExportFormat = (json[0] && json[0].length >= 5 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
-            
-            if(!compInput && !isExportFormat) {
-                $('loader').classList.add('hidden');
-                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
-            }
-
             const batch = db.batch();
             for(let i = 1; i < json.length; i++) {
                 let row = json[i];
                 if(row.length > 0) {
-                    let c, code, name, price, qty;
-                    if(isExportFormat) {
-                        c = row[0] ? String(row[0]).trim() : compInput;
-                        code = String(row[1] || '');
-                        name = String(row[2] || '');
-                        price = Number(row[3] || 0);
-                        qty = Number(row[4] || 0);
-                    } else {
-                        c = compInput;
-                        code = String(row[0] || '');
-                        name = String(row[1] || '');
-                        price = Number(row[2] || 0);
-                        qty = Number(row[3] || 0);
-                    }
-                    
-                    if(code && code !== 'undefined') {
-                        let docRef = db.collection('company_stock').doc();
-                        batch.set(docRef, { 
-                            company: c || 'بدون شركة', 
-                            code: code, 
-                            name: name, 
-                            price: price, 
-                            quantity: qty, 
-                            adminId: currentUser.uid 
-                        });
-                    }
+                    let docRef = db.collection('company_stock').doc();
+                    batch.set(docRef, { company: comp, code: String(row[0]||''), name: String(row[1]||''), price: Number(row[2]||0), quantity: Number(row[3]||0), adminId: currentUser.uid });
                 }
             }
             await batch.commit();
-            toast(t('upload_success'), 'success'); 
-            $('stockCompany').value = ''; 
-            fileInput.value = '';
-        } catch(err) { console.error('Upload Error:', err); toast('Error parsing Excel: '+err.message, 'error'); }
+            toast(t('upload_success'), 'success'); $('stockCompany').value = ''; fileInput.value = '';
+            loadAdminStock();
+        } catch(err) { toast('Error parsing Excel: '+err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
     reader.readAsArrayBuffer(fileInput.files[0]);
@@ -996,12 +690,10 @@ function loadAdminStock() {
     db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('stockTable')) return;
         $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
-        let index = 0;
         snap.forEach(doc => {
             let d = doc.data();
-            $('stockTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
+            $('stockTable').innerHTML += `<tr><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
                 <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">✖️</button></td></tr>`;
-            index++;
         });
         $('loader').classList.add('hidden');
     }, err => { $('loader').classList.add('hidden'); });
