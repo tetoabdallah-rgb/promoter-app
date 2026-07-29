@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -10,17 +10,9 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('New update available. Reloading...');
-                                setTimeout(() => window.location.reload(true), 1500);
-                            }
-                        };
-                    };
-                });
+                navigator.serviceWorker.register('./sw.js').then(reg => {
+                    console.log('SW registered:', reg);
+                }).catch(err => console.log('SW registration failed:', err));
             });
         }
     </script>
@@ -40,196 +32,62 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-storage-compat.js"></script>
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
-
-:root {
-    --bg-dark: #070B14;
-    --bg-card: rgba(18, 25, 43, 0.6);
-    --tx-main: #f1f5f9;
-    --tx-muted: #94a3b8;
-    --primary: #3b82f6;
-    --primary-glow: rgba(59, 130, 246, 0.5);
-    --success: #10b981;
-    --danger: #f43f5e;
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-}
-
+        :root { --bg1: #0f172a; --bg2: #1e293b; --tx1: #f8fafc; --tx2: #cbd5e1; --am: #3b82f6; --gn: #10b981; --rd: #ef4444; --glass-bg: rgba(30, 41, 59, 0.7); --glass-border: rgba(255, 255, 255, 0.15); }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-
-body {
-    background-color: var(--bg-dark);
-    color: var(--tx-main);
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    font-size: 16px;
-    background-image: 
-        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.12), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.08), transparent 25%);
-    background-attachment: fixed;
-}
+body { background-color: var(--bg1); color: var(--tx1); min-height: 100vh; overflow-x: hidden; }
 
 /* Custom Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--am); }
 
-/* Glassmorphism Classes */
-.glass-card {
-    background: var(--bg-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 28px;
-    box-shadow: var(--glass-shadow);
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
-}
-.glass-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 45px 0 rgba(0, 0, 0, 0.6);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-/* Full Screen Layouts */
-.screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 10; background: rgba(7, 11, 20, 0.8); backdrop-filter: blur(10px); }
+.bg-animated { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background: linear-gradient(120deg, #0f172a, #1e1b4b, #0f172a); background-size: 200% 200%; animation: gradientBG 15s ease infinite; }
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.glass-card { background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.glass-card:hover { box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45); }
+.screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; z-index: 10; }
 .hidden { display: none !important; }
-
-/* Auth Box */
-.auth-box { width: 90%; max-width: 420px; display: flex; flex-direction: column; gap: 24px; animation: slideUp 0.6s ease-out forwards; }
-.auth-box h2 { text-align: center; font-weight: 800; font-size: 2rem; margin-bottom: 10px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-/* Inputs */
-.input-box {
-    width: 100%; padding: 16px 20px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(0,0,0,0.2);
-    color: var(--tx-main);
-    font-size: 1rem; outline: none;
-    transition: all 0.3s ease;
-}
-.input-box::placeholder { color: var(--tx-muted); }
-.input-box:focus {
-    border-color: var(--primary);
-    background: rgba(0,0,0,0.4);
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-}
-select.input-box option { background: var(--bg-dark); color: var(--tx-main); }
-
-/* Buttons */
-.btn {
-    padding: 16px 24px; border: none; border-radius: 14px;
-    font-size: 1.05rem; font-weight: 700; cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: inline-flex; justify-content: center; align-items: center; gap: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    position: relative; overflow: hidden;
-}
-.btn::after {
-    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-    background: linear-gradient(to bottom right, rgba(255,255,255,0.2), rgba(255,255,255,0), rgba(255,255,255,0));
-    transform: rotate(45deg); transition: all 0.3s ease; opacity: 0;
-}
-.btn:hover::after { opacity: 1; transform: rotate(45deg) translate(10%, 10%); }
-.btn:active { transform: scale(0.95); }
-
-.btn-primary { background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff; box-shadow: 0 4px 15px var(--primary-glow); }
-.btn-primary:hover { box-shadow: 0 8px 25px var(--primary-glow); transform: translateY(-2px); }
-
-.btn-danger { background: linear-gradient(135deg, #e11d48, #f43f5e); color: #fff; }
-.btn-danger:hover { box-shadow: 0 8px 25px rgba(244, 63, 94, 0.4); }
-
-.btn-success { background: linear-gradient(135deg, #059669, #10b981); color: #fff; }
-.btn-success:hover { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
-
-/* Dashboard Layout */
+.auth-box { width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; }
+.input-box { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); color: var(--tx1); font-size: 1rem; outline: none; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+.input-box:focus { border-color: var(--am); background: rgba(255,255,255,0.07); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); }
+.btn { padding: 14px; border: none; border-radius: 12px; font-size: 1rem; cursor: pointer; font-weight: bold; transition: all 0.2s ease; width: 100%; text-align: center; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+.btn:active { transform: scale(0.96); }
+.btn-primary { background: linear-gradient(135deg, var(--am), #2563eb); color: #fff; } .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 12px rgba(59,130,246,0.4); }
+.btn-danger { background: linear-gradient(135deg, var(--rd), #dc2626); color: #fff; } .btn-success { background: linear-gradient(135deg, var(--gn), #059669); color: #fff; }
 #app-screen { display: flex; flex-direction: row; justify-content: flex-start; align-items: stretch; padding: 24px; gap: 32px; height: 100vh; height: 100dvh; overflow: hidden; animation: fadeIn 0.8s ease-out; }
-.sidebar { width: 280px; display: flex; flex-direction: column; flex-shrink: 0; }
+.sidebar { width: 260px; display: flex; flex-direction: column; }
+.user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
+.user-profile .avatar { font-size: 2.8rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); } .user-profile .info { display: flex; flex-direction: column; }
+.badge { background: linear-gradient(135deg, var(--am), #2563eb); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; width: fit-content; margin-top: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.nav-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.nav-links li { padding: 14px 20px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--tx2); }
+.nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.08); color: var(--tx1); border-right: 4px solid var(--am); transform: translateX(-4px); }
 .main-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 28px; width: calc(100% - 312px); overflow: hidden; }
-
-/* Sidebar Profile */
-.user-profile { display: flex; align-items: center; gap: 16px; margin-bottom: 35px; padding-bottom: 24px; border-bottom: 1px solid var(--glass-border); }
-.user-profile .avatar { font-size: 3rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 50%; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1); }
-.user-profile .info h3 { font-size: 1.1rem; font-weight: 700; }
-.badge { background: linear-gradient(135deg, #2563eb, #3b82f6); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-block; margin-top: 6px; box-shadow: 0 2px 8px var(--primary-glow); letter-spacing: 0.5px; }
-
-/* Navigation */
-.nav-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-.nav-links li { padding: 16px 20px; border-radius: 16px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 14px; font-weight: 600; color: var(--tx-muted); font-size: 1.05rem; }
-.nav-links li:hover { background: rgba(255,255,255,0.04); color: var(--tx-main); transform: translateX(-6px); }
-.nav-links li.active { background: linear-gradient(90deg, rgba(59,130,246,0.15), transparent); color: var(--tx-main); border-right: 4px solid var(--primary); box-shadow: inset -10px 0 20px -10px var(--primary-glow); }
-
-/* Topbar & Header */
-.topbar { display: flex; justify-content: space-between; align-items: center; padding: 20px 30px; background: var(--bg-card); backdrop-filter: blur(12px); border-radius: 20px; border: 1px solid var(--glass-border); animation: slideDown 0.6s ease-out; }
-.topbar h2 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
-.page-container { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 100px; animation: fadeIn 0.5s ease-out; -webkit-overflow-scrolling: touch; }
-
-/* Grids */
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
-.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 30px; }
-
-/* Form Groups */
-.fg { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; position: relative; }
-.fg label { font-size: 0.95rem; color: var(--tx-muted); font-weight: 600; margin-right: 4px; }
-
-/* Tables */
-.table-container { width: 100%; overflow-x: auto; border-radius: 16px; background: rgba(0,0,0,0.15); border: 1px solid var(--glass-border); }
-table { width: 100%; border-collapse: collapse; text-align: right; }
-th, td { padding: 18px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); } 
-th { color: var(--tx-muted); font-weight: 700; font-size: 0.9rem; background: rgba(0,0,0,0.2); white-space: nowrap; }
-tr { transition: all 0.3s ease; }
-tr:hover { background-color: rgba(255,255,255,0.04); transform: scale(1.01); box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; position: relative; }
-
-/* Table Group Headers (Company/Branch) */
-tr.group-header td { background: linear-gradient(90deg, rgba(59,130,246,0.1), transparent); color: var(--primary); font-weight: 800; font-size: 1.1rem; border-bottom: 2px solid rgba(59,130,246,0.3); }
-tr.subgroup-header td { background: rgba(255,255,255,0.03); color: var(--tx-main); font-weight: 700; font-style: italic; }
-
-/* Spinner */
-.spinner { width: 50px; height: 50px; border: 4px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; }
-
-/* Animations */
+.topbar { padding: 20px; } .page-container { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 100px; animation: fadeIn 0.5s ease-out; -webkit-overflow-scrolling: touch; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+.fg { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+.fg label { font-size: 0.95rem; color: var(--tx2); font-weight: 500; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; }
+th, td { padding: 16px; text-align: right; border-bottom: 1px solid var(--glass-border); } 
+th { color: var(--tx2); font-weight: 600; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; }
+tr { transition: background-color 0.2s ease; }
+tr:hover { background-color: rgba(255,255,255,0.04); }
+.spinner { width: 50px; height: 50px; border: 4px solid var(--glass-border); border-top-color: var(--am); border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
-@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 50% { transform: scale(1.02); } 100% { opacity: 1; transform: scale(1); } }
-
-.animate-pop { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-.animate-row { animation: slideUp 0.4s ease-out forwards; opacity: 0; }
-.animate-row:nth-child(1) { animation-delay: 0.05s; }
-.animate-row:nth-child(2) { animation-delay: 0.1s; }
-.animate-row:nth-child(3) { animation-delay: 0.15s; }
-.animate-row:nth-child(4) { animation-delay: 0.2s; }
-.animate-row:nth-child(5) { animation-delay: 0.25s; }
-
-/* Skeleton */
-.skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; height: 20px; }
+/* Modern Skeleton Loader */
+.skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; height: 20px; }
 @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-/* Progress */
-.progress-bg { width: 100%; background: rgba(0,0,0,0.3); border-radius: 12px; height: 10px; overflow: hidden; margin-top: 10px; border: 1px solid rgba(255,255,255,0.05); }
-.progress-bar { height: 100%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; background: linear-gradient(90deg, #3b82f6, #60a5fa); box-shadow: 0 0 10px rgba(59,130,246,0.5); }
-
-/* Custom Checkbox/Toggle (Permissions) */
-input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; border-radius: 6px; }
-.perm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 10px; }
-.perm-item { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.2); padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
-.perm-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
-.perm-item label { margin: 0; cursor: pointer; flex: 1; }
-
-@media (max-width: 768px) { #app-screen { flex-direction: column; padding: 16px; gap: 20px; } 
-    .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 10px; align-items: center; } 
-    .user-profile { margin: 0; padding: 0; border: none; margin-left: 20px; }
-    .nav-links { flex-direction: row; flex: 1; }
-    .nav-links li { padding: 12px 16px; white-space: nowrap; font-size: 0.95rem; }
-    .nav-links li:hover { transform: translateY(-4px); border-right: none; }
-    .nav-links li.active { border-right: none; border-bottom: 4px solid var(--primary); background: linear-gradient(0deg, rgba(59,130,246,0.15), transparent); }
-    .main-content { width: 100%; }
-    .topbar { flex-direction: column; gap: 15px; text-align: center; }
-}
+/* Smart search bar */
+.search-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.search-bar input { flex: 1; min-width: 200px; }
+.export-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; padding: 14px 24px; white-space: nowrap; }
+.export-btn:hover { filter: brightness(1.1); box-shadow: 0 6px 12px rgba(16,185,129,0.4); }
+/* Progress Bar */
+.progress-bg { width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; overflow: hidden; margin-top: 8px; }
+.progress-bar { height: 100%; transition: width 0.5s ease; border-radius: 10px; }
+@media (max-width: 768px) { #app-screen { flex-direction: column; padding: 15px; } .sidebar { width: 100%; margin-bottom: 20px; } .nav-links li:hover, .nav-links li.active { transform: none; border-right: none; border-bottom: 4px solid var(--am); } }
     </style>
 </head>
 <body>
@@ -243,17 +101,17 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary)
     <div id="auth-screen" class="screen">
         <div class="glass-card auth-box">
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
-                <button id="tabPromoter" class="btn" style="background:var(--am); color:white;" onclick="switchLogin('promoter')">?? ???????</button>
-                <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">?? ?????</button>
+                <button id="tabPromoter" class="btn" style="background:var(--am); color:white;" onclick="switchLogin('promoter')">👤 بروموتر</button>
+                <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">👑 إدارة</button>
             </div>
-            <h1 id="loginTitle" style="text-align:center; font-size: 1.8rem; margin-bottom: 20px;">????? ??????</h1>
-            <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">????? ????? ????????? ????????? ???????</p>
-            <input type="email" id="authEmail" class="input-box" placeholder="?????? ??????????">
-            <input type="password" id="authPass" class="input-box" placeholder="???? ??????">
+            <h1 id="loginTitle" style="text-align:center; font-size: 1.8rem; margin-bottom: 20px;">تسجيل الدخول</h1>
+            <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
+            <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
+            <input type="password" id="authPass" class="input-box" placeholder="كلمة المرور">
             
             <div style="display: flex; gap: 10px; flex-direction: column;">
-                <button id="btnLogin" class="btn btn-primary" onclick="login()">????</button>
-                <button id="btnRegister" class="btn btn-secondary" style="background-color: var(--tx2); color: white;" onclick="registerAdmin()">????? ???? ????? ????</button>
+                <button id="btnLogin" class="btn btn-primary" onclick="login()">دخول</button>
+                <button id="btnRegister" class="btn btn-secondary" style="background-color: var(--tx2); color: white;" onclick="registerAdmin()">إنشاء حساب إدارة جديد</button>
             </div>
             <p id="authError" style="color: var(--rd); text-align: center; margin-top: 10px; font-weight:bold; background:rgba(255,0,0,0.1); padding:5px; border-radius:5px; display:none;"></p>
         </div>
@@ -263,7 +121,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary)
     <div id="app-screen" class="screen hidden">
         <nav class="sidebar glass-card">
             <div class="user-profile">
-                <div class="avatar">??</div>
+                <div class="avatar">👤</div>
                 <div class="info">
                     <strong id="uiName">User</strong>
                     <span id="uiRole" class="badge">Role</span>
@@ -271,12 +129,12 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary)
             </div>
             
             <ul id="navLinks" class="nav-links"></ul>
-            <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">???? ??</button>
+            <button class="btn btn-danger" onclick="logout()" style="margin-top:auto;">خروج 🚪</button>
         </nav>
 
         <main class="main-content">
             <header class="topbar glass-card">
-                <h2 id="pageTitle">???? ??????</h2>
+                <h2 id="pageTitle">لوحة التحكم</h2>
             </header>
             <div id="pageContent" class="page-container"></div>
         </main>
@@ -308,8 +166,8 @@ window.onunhandledrejection = function(e) {
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 const dict = {
-    ar: { login_title: "?? ????? ?????? (???????)", login_subtitle: "????? ????? ????????? ?????????", email_ph: "?????? ??????????", pass_ph: "???? ??????", login_btn: "????", logout: "???? ??", admin_dash: "?? ???? ??????", admin_sales: "?? ?? ????????", admin_users: "?? ??????????", admin_products: "?? ????????", admin_companies: "?? ??????? ????????", prm_dash: "?? ????????", prm_sales: "? ??????", prm_att: "?? ??????", sale_code: "??? ?????", sale_price: "?????", sale_date: "???????", sale_desc: "?????", company: "??????", branch: "?????", promoter: "?????????", delete: "???", add_new_account: "????? ???? ????", email: "??????", password: "???? ??????", role: "????????", role_promoter: "???????", role_admin: "????", promoter_code: "??? ?????????", target_monthly: "??????? (????)", commission_rate: "???? ??????? (%)", add_btn: "????? ?", cancel_btn: "????? ??", edit_account_title: "????? ?????? ??????", save_btn: "??? ??", confirm_delete: "?? ??? ????? ?? ??????", upload_excel_title: "??? ???????? (Excel)", excel_file: "??? ????? (.xlsx)", upload_btn: "??? ??", fill_fields: "???? ????? ??????", upload_success: "?? ??? ???? ???????? ?????!", sale_photo: "???? ???????? (???????)", save_sales: "??? ???????? ??", save_success: "?? ????? ?????!", share_wa: "?????? ???????? ??? ?????? ??", recent_sales: "??????? ???????", att_title: "????? ?????? ??????", att_desc: "????? ??????? ??? ?????? (GPS) ?????? ????? ?? ?????.", shift_1: "?????? ??????", shift_2: "?????? ???????", sales_by_company: "???????? ??? ??????", sales_by_branch: "???????? ??? ?????", top_products: "???? ???????? ??????", upload_stock_title: "??? ????? ?????? (Excel)", stock_qty: "??????", action: "?????", login_tab_promoter: "?? ???? ?????????", login_tab_admin: "?? ???? ???????", search: "??? ??", export_excel: "????? ??", break_title: "??? ?????? (??????)", break_desc: "?? ???? ?? ???? ???? ????? ??? ?????? (30 ????? ??? ????).", break_1_start: "??? ???? 1 (30?)", break_2_start: "??? ???? 2 (30?)", break_end: "????? ??????", break_started: "??? ??? ??????", break_ended: "????? ??? ??????", break_completed: "??????", break_already_completed: "??? ???? ??? ?????? ??????", admin_attendance: "?? ??? ??????" },
-    en: { login_title: "?? Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout ??", admin_dash: "?? Dashboard", admin_sales: "?? All Sales", admin_users: "?? Promoters", admin_products: "?? Products", admin_companies: "?? Companies & Stock", prm_dash: "?? Home", prm_sales: "? Add Sales", prm_att: "?? Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ?", cancel_btn: "Cancel ??", edit_account_title: "Edit Account", save_btn: "Save ??", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload ??", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales ??", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp ??", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "?? Promoter Login", login_tab_admin: "?? Admin Login", search: "Search ??", export_excel: "Export ??", break_title: "Break Time", break_desc: "You have a 1-hour break divided into two halves (30 minutes each).", break_1_start: "Start Break 1 (30m)", break_2_start: "Start Break 2 (30m)", break_end: "End Break", break_started: "Break Started", break_ended: "Break Ended", break_completed: "Completed", break_already_completed: "Break already taken", admin_attendance: "?? Attendance Log" }
+    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة", search: "بحث 🔍", export_excel: "تصدير 📥", break_title: "وقت الراحة (البريك)", break_desc: "لك الحق في ساعة راحة مقسمة إلى فترتين (30 دقيقة لكل فترة).", break_1_start: "بدء راحة 1 (30د)", break_2_start: "بدء راحة 2 (30د)", break_end: "إنهاء الراحة", break_started: "بدأ وقت الراحة", break_ended: "انتهى وقت الراحة", break_completed: "مكتملة", break_already_completed: "لقد أخذت هذه الراحة مسبقاً", admin_attendance: "📅 سجل الحضور" },
+    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login", search: "Search 🔍", export_excel: "Export 📥", break_title: "Break Time", break_desc: "You have a 1-hour break divided into two halves (30 minutes each).", break_1_start: "Start Break 1 (30m)", break_2_start: "Start Break 2 (30m)", break_end: "End Break", break_started: "Break Started", break_ended: "Break Ended", break_completed: "Completed", break_already_completed: "Break already taken", admin_attendance: "📅 Attendance Log" }
 };
 
 function t(key) { return dict[currentLang][key] || key; }
@@ -335,7 +193,7 @@ db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get()
 
 $('loginTitle').innerText = t('login_title'); $('loginSub').innerText = t('login_subtitle');
 $('authEmail').placeholder = t('email_ph'); $('authPass').placeholder = t('pass_ph');
-$('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang === 'ar' ? 'English' : '????';
+$('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
 
 checkAuth();
 
@@ -354,7 +212,7 @@ async function checkAuth() {
                 userData = { uid: currentUser.uid, email: currentUser.email, role: currentRole, promoterCode: 'PRM-' + Math.floor(Math.random()*10000), branch: 'Main', company: 'Main', target: 0, commissionRate: 0 };
                 await db.collection('users').doc(currentUser.uid).set(userData);
             }
-            $('uiRole').innerText = currentRole === 'admin' ? '?? Admin' : '?? Promoter';
+            $('uiRole').innerText = currentRole === 'admin' ? '👑 Admin' : '👤 Promoter';
             buildNav(); showScreen('app-screen');
         } else {
             showScreen('auth-screen');
@@ -383,11 +241,11 @@ function switchLogin(mode) {
 
 async function login() {
     let e = $('authEmail').value.trim(), p = $('authPass').value.trim();
-    if (!e || !p) return toast('???? ????? ????????', 'error');
+    if (!e || !p) return toast('يرجى إدخال البيانات', 'error');
     $('loader').classList.remove('hidden');
     let timeoutId = setTimeout(() => {
         $('loader').classList.add('hidden');
-        $('authError').innerText = '???? ??????? ????????! ???? ????? ?????? ?? ????? ???? ?????????.';
+        $('authError').innerText = 'تأخر الاتصال بالسيرفر! يرجى تحديث الصفحة أو إيقاف مانع الإعلانات.';
         $('authError').style.display = 'block';
     }, 8000);
     try {
@@ -398,29 +256,29 @@ async function login() {
             let profileSnap = await db.collection('users').doc(user.uid).get();
             let profile = profileSnap.exists ? profileSnap.data() : null;
             let isAdmin = (profile && profile.role === 'admin');
-            if (loginMode === 'admin' && !isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = '??? ???? ?? ??????? ???????.'; $('authError').style.display = 'block'; return; }
-            if (loginMode === 'promoter' && isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = '???? ?????? ?? ????? ???????.'; $('authError').style.display = 'block'; return; }
+            if (loginMode === 'admin' && !isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'غير مصرح لك بالدخول للإدارة.'; $('authError').style.display = 'block'; return; }
+            if (loginMode === 'promoter' && isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'يرجى الدخول من تبويب الإدارة.'; $('authError').style.display = 'block'; return; }
             localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
             $('authError').style.display = 'none'; checkAuth();
         } else {
-            $('loader').classList.add('hidden'); $('authError').innerText = '???????? ??? ?????.'; $('authError').style.display = 'block';
+            $('loader').classList.add('hidden'); $('authError').innerText = 'البيانات غير صحيحة.'; $('authError').style.display = 'block';
         }
-    } catch(err) { $('loader').classList.add('hidden'); toast(`???: ${err.message}`, 'error'); }
+    } catch(err) { $('loader').classList.add('hidden'); toast(`خطأ: ${err.message}`, 'error'); }
 }
 
 async function registerAdmin() {
     let e = $('authEmail').value.trim(), p = $('authPass').value.trim();
-    if (!e || !p) return toast('???? ????? ??????? ????????? ?????', 'error');
+    if (!e || !p) return toast('يرجى إدخال الإيميل والباسورد أولاً', 'error');
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).get();
         if (!snap.empty) {
-            toast('??? ?????? ????? ??????!', 'error');
+            toast('هذا الحساب موجود بالفعل!', 'error');
         } else {
             let uid = 'usr_' + Date.now();
             await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
             await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: 'admin', promoterCode: 'ADMIN-'+Math.floor(Math.random()*1000), branch: 'Main', company: 'Main', adminId: uid });
-            toast('?? ????? ?????? ?????! ????? ?????? ????.', 'success');
+            toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
         }
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
@@ -430,21 +288,16 @@ function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        if (!userData.permissions || userData.permissions.admin_dash !== false) links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_sales !== false) links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_promoters !== false) links += `<li onclick="nav('admin_promoters')">?? ????? ????????</li>`;
-        if (!userData.permissions || userData.permissions.admin_subadmins !== false) links += `<li onclick="nav('admin_subadmins')">?? ????? ????????</li>`;
-        if (!userData.permissions || userData.permissions.admin_attendance !== false) links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_products !== false) links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_companies !== false) links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
+        links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
+        links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
+        links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
+        links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
+        links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
+        links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
     } else {
         links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
-        if (!userData.permissions || userData.permissions.sales !== false) {
-            links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
-        }
-        if (!userData.permissions || userData.permissions.attendance !== false) {
-            links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
-        }
+        links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
+        links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
     }
     $('navLinks').innerHTML = links;
     setTimeout(() => { let lis = $('navLinks').querySelectorAll('li'); if(lis.length > 0) lis[0].click(); }, 100);
@@ -457,47 +310,42 @@ function nav(page) {
     let content = '', title = '';
     if (page === 'promoter_dash') {
         title = t('prm_dash');
-        content = `<div class="glass-card" style="margin-bottom:20px; background:linear-gradient(45deg, var(--am), #1e1b4b);"><h3 style="color:#fff; margin-bottom:15px;">?????? ??? ${userData.email.split('@')[0]} ??</h3><div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#ccc;">??????? ??????:</span><strong style="color:#fff;" id="prmTargetVal">0</strong></div><div style="width:100%; height:15px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div id="prmTargetBar" style="width:0%; height:100%; background:var(--gn); transition:0.5s;"></div></div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:#ccc;">???????? ???????: <strong style="color:#fff;" id="prmSalesVal">0</strong></span><span style="color:#ccc;">??????? ????????: <strong style="color:var(--gn);" id="prmCommVal">0</strong></span></div></div></div>`;
+        content = `<div class="glass-card" style="margin-bottom:20px; background:linear-gradient(45deg, var(--am), #1e1b4b);"><h3 style="color:#fff; margin-bottom:15px;">مرحباً بك، ${userData.email.split('@')[0]} 👋</h3><div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px;"><div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span style="color:#ccc;">التارجت الشهري:</span><strong style="color:#fff;" id="prmTargetVal">0</strong></div><div style="width:100%; height:15px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;"><div id="prmTargetBar" style="width:0%; height:100%; background:var(--gn); transition:0.5s;"></div></div><div style="display:flex; justify-content:space-between; margin-top:10px;"><span style="color:#ccc;">المبيعات الحالية: <strong style="color:#fff;" id="prmSalesVal">0</strong></span><span style="color:#ccc;">العمولة المستحقة: <strong style="color:var(--gn);" id="prmCommVal">0</strong></span></div></div></div>`;
         setTimeout(loadPromoterProgress, 100);
     }
     else if (page === 'promoter_sales') {
         title = t('prm_sales');
-        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><div style="display:flex; gap:5px;"><input list="productsList" id="sCode" class="input-box" onchange="autoFillProductDetails()" oninput="autoFillProductDetails()" placeholder="???? ?? ?????..." style="flex:1;"><datalist id="productsList"></datalist><button class="btn btn-primary" onclick="startScanner()" style="padding:0 10px; flex-shrink:0;">??</button></div><div id="reader" style="width:100%; display:none; margin-top:5px; border-radius:5px; overflow:hidden;"></div></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')} ??</label><input type="file" id="sPhoto" class="input-box" accept="image/*" capture="environment"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
+        content = `<div class="glass-card"><div class="grid-2"><div class="fg"><label>${t('sale_code')}</label><div style="display:flex; gap:5px;"><select id="sCode" class="input-box" onchange="autoFillProductDetails()" style="flex:1;"></select><button class="btn btn-primary" onclick="startScanner()" style="padding:0 10px; flex-shrink:0;">📸</button></div><div id="reader" style="width:100%; display:none; margin-top:5px; border-radius:5px; overflow:hidden;"></div></div><div class="fg"><label>${t('sale_price')}</label><input type="number" id="sPrice" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div><div class="fg"><label>${t('sale_photo')} 📷</label><input type="file" id="sPhoto" class="input-box" accept="image/*" capture="environment"></div><div class="fg"><label>${t('sale_desc')}</label><input type="text" id="sDesc" class="input-box" readonly style="background: rgba(255,255,255,0.02);"></div></div><button class="btn btn-primary" style="margin-top:15px;" onclick="submitSale()">${t('save_sales')}</button></div><div id="shareBox" class="glass-card hidden" style="margin-top:10px; text-align:center; background:rgba(16,185,129,0.1); border-color:var(--gn);"><h4 style="color:var(--gn); margin-bottom:10px;">${t('save_success')}</h4><button class="btn btn-success" id="btnShareWA">${t('share_wa')}</button></div><h3 style="margin-top:20px;">${t('recent_sales')}</h3><div class="search-bar"><input type="text" id="s_mySales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_mySales', 'mySalesTable')"></div><div class="glass-card" style="margin-top:10px; overflow-x:auto;"><table id="mySalesTable"></table></div>`;
         setTimeout(initPromoterSales, 100);
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>???? ?????? (Selfie) ??</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
+        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
         title = t('admin_sales');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>?? ?????</label><input type="date" id="saleFromDate" class="input-box"></div><div class="fg"><label>??? ?????</label><input type="date" id="saleToDate" class="input-box"></div></div><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="loadAllSales()">${t('search')} ??</button></div><div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><div style="display:flex; gap:10px;"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button><button class="btn btn-success" style="background:var(--gn); color:#fff;" onclick="generatePayroll()">????? ????? ??</button></div></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
+        content = `<div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
         setTimeout(loadAllSales, 100);
     }
     else if (page === 'admin_dash') {
         title = t('admin_dash');
-        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">?? ????? ???????? (???? 3 ????????)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
+        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
-    else if (page === 'admin_promoters') {
-        title = '????? ????????';
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">????? ???? ????</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter" selected>${t('role_promoter')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="grid-column: span 3;"><label>??????? ??????</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermSales" checked> ????? ??????</label><label><input type="checkbox" id="nuPermAtt" checked> ????? ????</label><label><input type="checkbox" id="nuPermPrice" checked> ???? ???????</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('promoter')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('promoter')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
-        setTimeout(() => loadAdminUsers('promoter'), 100);
-    }
-    else if (page === 'admin_subadmins') {
-        title = '????? ???????? ?????????';
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">????? ????/???? ????</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="admin" selected>${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')} (???????)</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')} (???????)</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg" style="grid-column: span 3;"><label>??????? ???? ?????? ??????</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermAdminDash" checked> ?????????? (Dashboard)</label><label><input type="checkbox" id="nuPermAdminSales" checked> ???? ????????</label><label><input type="checkbox" id="nuPermAdminPromoters" checked> ????? ????????</label><label><input type="checkbox" id="nuPermAdminSubadmins" checked> ????? ????????</label><label><input type="checkbox" id="nuPermAdminAtt" checked> ??????</label><label><input type="checkbox" id="nuPermAdminProd" checked> ????????</label><label><input type="checkbox" id="nuPermAdminComp" checked> ??????? ????????</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('admin')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('admin')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Admins')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
-        setTimeout(() => loadAdminUsers('admin'), 100);
+    else if (page === 'admin_users') {
+        title = t('admin_users');
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        setTimeout(loadAdminUsers, 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllProducts()">??? ???? ???????? ???</button></div></div><div class="search-bar"><input type="text" id="s_productsTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_productsTable', 'productsTable')"><button class="btn export-btn" onclick="exportTableToExcel('productsTable', 'Products')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_excel_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="prodCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="prodFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadProductsExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllProducts()">مسح جميع المنتجات 🗑️</button></div></div><div class="search-bar"><input type="text" id="s_productsTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_productsTable', 'productsTable')"><button class="btn export-btn" onclick="exportTableToExcel('productsTable', 'Products')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="productsTable"></table></div>`;
         setTimeout(loadAdminProducts, 100);
     }
     else if (page === 'admin_companies') {
         title = t('admin_companies');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllStock()">??? ???? ???????? ???</button></div></div><div class="search-bar"><input type="text" id="s_stockTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_stockTable', 'stockTable')"><button class="btn export-btn" onclick="exportTableToExcel('stockTable', 'Stock')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3>${t('upload_stock_title')}</h3><div class="grid-2" style="margin-top:10px;"><div class="fg"><label>${t('company')}</label><input type="text" id="stockCompany" class="input-box"></div><div class="fg"><label>${t('excel_file')}</label><input type="file" id="stockFile" class="input-box" accept=".xlsx"></div></div><div style="display:flex; gap:10px;"><button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadStockExcel()">${t('upload_btn')}</button><button class="btn btn-danger" style="margin-top: 10px; width:200px; background:var(--rd);" onclick="deleteAllStock()">مسح جميع المنتجات 🗑️</button></div></div><div class="search-bar"><input type="text" id="s_stockTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_stockTable', 'stockTable')"><button class="btn export-btn" onclick="exportTableToExcel('stockTable', 'Stock')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="stockTable"></table></div>`;
         setTimeout(loadAdminStock, 100);
     }
     else if (page === 'admin_attendance') {
@@ -528,10 +376,10 @@ async function initPromoterSales() {
     try {
         let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
-        let list = $('productsList');
-        if(list) {
-            list.innerHTML = '';
-            cachedProducts.forEach(p => { list.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
+        let select = $('sCode');
+        if(select) {
+            select.innerHTML = `<option value="">اختر الصنف</option>`;
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -552,33 +400,21 @@ function startScanner() {
         if (found) {
             $('sCode').value = decodedText;
             autoFillProductDetails();
-            toast('?? ?????? ?????', 'success');
+            toast('تم التقاط الكود', 'success');
             html5QrcodeScanner.clear();
             readerDiv.style.display = 'none';
-        } else { toast('????? ??? ????', 'error'); }
+        } else { toast('الكود غير مسجل', 'error'); }
     }, (error) => {});
 }
 
 function autoFillProductDetails() {
     let prod = cachedProducts.find(p => p.itemCode === $('sCode').value);
-    if(prod) { 
-        if(userData.permissions && userData.permissions.price === false) {
-            $('sPrice').type = 'text'; $('sPrice').value = '***';
-        } else {
-            $('sPrice').type = 'number'; $('sPrice').value = prod.price;
-        }
-        $('sDesc').value = prod.description; 
-    } else { 
-        $('sPrice').value = ''; $('sDesc').value = ''; 
-    }
+    if(prod) { $('sPrice').value = prod.price; $('sDesc').value = prod.description; } else { $('sPrice').value = ''; $('sDesc').value = ''; }
 }
 
 async function submitSale() {
     let c = $('sCode').value, p = $('sPrice').value, desc = $('sDesc').value, photo = $('sPhoto').files[0];
-    let prod = cachedProducts.find(x => x.itemCode === c);
-    if (prod && (userData.permissions && userData.permissions.price === false)) p = prod.price;
-    if(p === '***' && prod) p = prod.price;
-    if(!c || !p) return toast('???? ?????? ?????', 'error');
+    if(!c || !p) return toast('يرجى اختيار الصنف', 'error');
     $('loader').classList.remove('hidden');
     try {
         let imageUrl = '';
@@ -597,7 +433,7 @@ async function submitSale() {
                 date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0]
             });
             localStorage.setItem('offlineSales', JSON.stringify(offlineQueue));
-            toast('?? ????? ?????? (???? ??????). ???? ???????? ??????!', 'success');
+            toast('تم الحفظ محلياً (بدون إنترنت). يرجى المزامنة لاحقاً!', 'success');
             $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
             loadMySales();
             checkOfflineQueue();
@@ -622,10 +458,10 @@ async function submitSale() {
                 }
             }
         } catch(e) { console.error("Stock deduction failed", e); }
-        toast('?? ????? ?????', 'success');
+        toast('تم الحفظ بنجاح', 'success');
         $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
         $('shareBox').classList.remove('hidden');
-        let text = `?????? ??????:\n??????: ${userData.company}\n?????: ${c}\n?????: ${p}\n????? ????????!`;
+        let text = `فاتورة مبيعات:\nالشركة: ${userData.company}\nالصنف: ${c}\nالسعر: ${p}\nشكراً لتعاملكم!`;
         $('btnShareWA').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         loadMySales();
     } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
@@ -633,18 +469,16 @@ async function submitSale() {
 
 async function loadMySales() {
     let tb = $('mySalesTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>?????</th><th>?????</th><th>?????</th><th>????</th><th>?????</th></tr>`;
+    tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
-        let index = 0;
         snap.docs.forEach(doc => {
-            let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">???</a>` : '-';
-            let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">???</button>`;
-            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
-            index++;
+            let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
+            let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
+            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
     } catch(err) {}
-    $('loader').classList.remove('hidden');
+    $('loader').classList.add('hidden');
 }
 
 function printReceipt(code, price, date) {
@@ -658,11 +492,11 @@ function printReceipt(code, price, date) {
         <body dir="rtl">
             <h2>Promoter Pro</h2>
             <div class="line"></div>
-            <p>???????: ${date}</p>
-            <p>??? ?????: ${code}</p>
-            <p>?????: ${price}</p>
+            <p>التاريخ: ${date}</p>
+            <p>كود الصنف: ${code}</p>
+            <p>السعر: ${price}</p>
             <div class="line"></div>
-            <p>????? ???????? ????!</p>
+            <p>شكراً لتعاملكم معنا!</p>
             <script>setTimeout(()=>{window.print(); window.close();},500);<\/script>
         </body></html>
     `);
@@ -693,17 +527,17 @@ function resizeImage(file, max_size) {
 
 async function markAttendance(slot) {
     let f = $('attPhoto') ? $('attPhoto').files[0] : null;
-    if (!f) return toast('???? ?????? ????? ?????? ?????', 'error');
-    $('locStatus').innerText = "???? ????? ?????? ?????? ??????...";
+    if (!f) return toast('يرجى التقاط سيلفي الحضور أولاً', 'error');
+    $('locStatus').innerText = "جاري تحضير الصورة وتحديد الموقع...";
     $('loader').classList.remove('hidden');
     try {
         let b64 = await resizeImage(f, 600);
         if (!navigator.geolocation) return processAttendance(slot, null, b64);
         navigator.geolocation.getCurrentPosition(
             pos => { processAttendance(slot, `${pos.coords.latitude},${pos.coords.longitude}`, b64); },
-            err => { toast('???? ??? ?????? ????????', 'error'); processAttendance(slot, null, b64); }
+            err => { toast('تعذر جلب الموقع الجغرافي', 'error'); processAttendance(slot, null, b64); }
         );
-    } catch(err) { toast('??? ?? ?????? ??????', 'error'); $('loader').classList.remove('hidden'); }
+    } catch(err) { toast('خطأ في معالجة الصورة', 'error'); $('loader').classList.add('hidden'); }
 }
 
 async function processAttendance(slot, loc, photoBase64) {
@@ -713,10 +547,10 @@ async function processAttendance(slot, loc, photoBase64) {
         let offAtt = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
         offAtt.push({slot: slot, loc: loc, photo: photoBase64, uid: currentUser.uid});
         localStorage.setItem('offlineAtt', JSON.stringify(offAtt));
-        toast('?? ??? ?????? ??????. ?? ???? ????????!', 'success');
+        toast('تم حفظ الحضور محلياً. لا تنسَ المزامنة!', 'success');
         if($('attPhoto')) $('attPhoto').value = '';
         checkOfflineQueue();
-        $('loader').classList.remove('hidden');
+        $('loader').classList.add('hidden');
         return;
     }
 
@@ -728,10 +562,10 @@ async function processAttendance(slot, loc, photoBase64) {
         if (slot === 1) { data.slot1 = true; data.loc1 = loc; data.photo1 = photoBase64; }
         if (slot === 2) { data.slot2 = true; data.loc2 = loc; data.photo2 = photoBase64; }
         await docRef.set(data, {merge: true});
-        toast('?? ??????', 'success'); 
+        toast('تم الحضور', 'success'); 
         if($('attPhoto')) $('attPhoto').value = '';
         loadMyAttendance();
-    } catch(err) { toast(err.message, 'error'); $('loader').classList.remove('hidden'); }
+    } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
 }
 
 let breakIntervals = {};
@@ -757,7 +591,7 @@ async function toggleBreak(b) {
         }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.remove('hidden');
+    $('loader').classList.add('hidden');
 }
 
 function setupBreakUI(b, breakData) {
@@ -802,157 +636,42 @@ async function loadMyAttendance() {
     try {
         let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
         let today = new Date().toISOString().split('T')[0];
-        let index = 0;
         snap.docs.forEach(doc => {
             let d = doc.data();
-            let b1 = d.break1 ? (d.break1.end ? '?' : '?') : '?';
-            let b2 = d.break2 ? (d.break2.end ? '?' : '?') : '?';
-            tb.innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${d.date}</td><td>${d.slot1?'?':'?'}</td><td>${d.slot2?'?':'?'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
+            let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
+            tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
             if (d.date === today && $('btnBreak1')) {
                 setupBreakUI(1, d.break1);
                 setupBreakUI(2, d.break2);
             }
-            index++;
         });
     } catch(err) {}
 }
 
 async function loadAllSales() {
     let tb = $('allSalesTable'); if(!tb) return;
-    $('loader').classList.remove('hidden');
+    tb.innerHTML = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
     try {
-        let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
-        let toDate = $('saleToDate') ? $('saleToDate').value : '';
-        
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
-        let docs = snap.docs.map(d => d.data());
-        
-        if (fromDate) docs = docs.filter(d => d.date >= fromDate);
-        if (toDate) docs = docs.filter(d => d.date <= toDate);
-        docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
-        
-        let grouped = {};
-        docs.forEach(d => {
-            let comp = d.company || '???? ????';
-            let br = d.branch || '???? ???';
-            if (!grouped[comp]) grouped[comp] = {};
-            if (!grouped[comp][br]) grouped[comp][br] = [];
-            grouped[comp][br].push(d);
+        let snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(50).get();
+        snap.docs.forEach(doc => {
+            let d = doc.data(), img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
+            tb.innerHTML += `<tr><td>${d.company} / ${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
         });
-        
-        let html = `<tr><th>??????/?????</th><th>?????????</th><th>??????</th><th>?????</th><th>???????</th><th>????</th></tr>`;
-        let index = 0;
-        for (let comp in grouped) {
-            let compSales = 0;
-            Object.keys(grouped[comp]).forEach(br => { grouped[comp][br].forEach(x => compSales += Number(x.price)); });
-            
-            html += `<tr class="animate-row" style="background:rgba(59, 130, 246, 0.2); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:center; font-weight:bold; color:var(--am);">?? ????: ${comp} (????????: ${compSales})</td></tr>`;
-            index++;
-            
-            for (let br in grouped[comp]) {
-                let brSales = 0;
-                grouped[comp][br].forEach(x => brSales += Number(x.price));
-                html += `<tr class="animate-row" style="background:rgba(255, 255, 255, 0.05); animation-delay: ${index * 0.05}s"><td colspan="6" style="text-align:right; font-weight:bold; color:#f59e0b;">?? ???: ${br} (????????: ${brSales})</td></tr>`;
-                index++;
-                
-                grouped[comp][br].slice(0, 150).forEach(d => {
-                    let img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">????</a>` : '-';
-                    html += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>-</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
-                    index++;
-                });
-            }
-        }
-        tb.innerHTML = html;
-    } catch(err) { console.error(err); }
-    $('loader').classList.add('hidden');
-}
-
-async function generatePayroll() {
-    let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
-    let toDate = $('saleToDate') ? $('saleToDate').value : '';
-    if (!fromDate || !toDate) return toast('???? ????? (?? ?????) ? (??? ?????) ????? ?????? ?????', 'error');
-    
-    $('loader').classList.remove('hidden');
-    try {
-        let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
-        let promoters = {};
-        uSnap.docs.forEach(d => {
-            let u = d.data();
-            if (u.role !== 'admin' && u.role !== 'supervisor') {
-                promoters[u.uid] = { 
-                    name: u.email.split('@')[0], 
-                    code: u.promoterCode, 
-                    target: Number(u.target) || 0,
-                    commissionRate: Number(u.commissionRate) || 0,
-                    totalSales: 0, 
-                    commissionEarned: 0, 
-                    attendanceDays: 0 
-                };
-            }
-        });
-
-        let sSnap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
-        sSnap.docs.forEach(doc => {
-            let s = doc.data();
-            if (s.date >= fromDate && s.date <= toDate) {
-                if (promoters[s.uid]) {
-                    promoters[s.uid].totalSales += Number(s.price);
-                    promoters[s.uid].commissionEarned += Number(s.commission || 0);
-                }
-            }
-        });
-
-        let aSnap = await db.collection('attendance').get();
-        aSnap.docs.forEach(doc => {
-            let a = doc.data();
-            if (a.date >= fromDate && a.date <= toDate) {
-                if (promoters[a.uid]) {
-                    if (a.slot1 || a.slot2) promoters[a.uid].attendanceDays++;
-                }
-            }
-        });
-
-        let excelData = [];
-        for (let uid in promoters) {
-            let p = promoters[uid];
-            excelData.push({
-                "??? ?????????": p.name,
-                "??? ?????????": p.code,
-                "??????? ???????": p.target,
-                "?????? ????????": p.totalSales,
-                "???? ???????": p.commissionRate + "%",
-                "??????? ????????": p.commissionEarned,
-                "???? ??????": p.attendanceDays
-            });
-        }
-        
-        let ws = XLSX.utils.json_to_sheet(excelData);
-        let wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Payroll");
-        XLSX.writeFile(wb, `Payroll_${fromDate}_to_${toDate}.xlsx`);
-        toast('?? ??????? ????? ?????!', 'success');
-        
-    } catch(err) { console.error(err); toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    } catch(err) {}
 }
 
 async function loadDashboard() {
     let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
     try {
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get(); 
-        
-        let docs = snap.docs.map(d => d.data());
-        docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
-        let recentDocs = docs.slice(0, 1000); // Process last 1000 sales
-        
-        recentDocs.forEach(d => {
-            compObj[d.company] = (compObj[d.company] || 0) + Number(d.price); 
-            brObj[d.branch] = (brObj[d.branch] || 0) + Number(d.price);
+        let snap = await db.collection('sales').limit(200).get(); 
+        snap.docs.forEach(doc => {
+            let d = doc.data();
+            compObj[d.company] = (compObj[d.company] || 0) + d.price; brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
             if(!prodObj[d.company]) prodObj[d.company] = {};
-            prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + Number(d.price);
-            promoterObj[d.promoterCode] = (promoterObj[d.promoterCode] || 0) + Number(d.price);
+            prodObj[d.company][d.itemCode] = (prodObj[d.company][d.itemCode] || 0) + d.price;
+            promoterObj[d.promoterCode] = (promoterObj[d.promoterCode] || 0) + d.price;
         });
-        
         if(chart1) chart1.destroy();
         chart1 = new Chart(document.getElementById('companyChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
         if(chart2) chart2.destroy();
@@ -962,10 +681,10 @@ async function loadDashboard() {
         if(lbCont) {
             lbCont.innerHTML = '';
             let topPromoters = Object.entries(promoterObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
-            let medals = ['??', '??', '??'];
+            let medals = ['🥇', '🥈', '🥉'];
             topPromoters.forEach((p, i) => {
                 lbCont.innerHTML += `<div style="background:rgba(16,185,129,0.1); border:1px solid var(--gn); padding:15px; border-radius:8px; text-align:center;">
-                    <div style="font-size:3rem; margin-bottom:10px;">${medals[i] || '??'}</div>
+                    <div style="font-size:3rem; margin-bottom:10px;">${medals[i] || '🏅'}</div>
                     <h4 style="margin:0 0 5px 0;">${p[0]}</h4>
                     <strong style="color:var(--gn); font-size:1.2rem;">${p[1]}</strong>
                 </div>`;
@@ -978,46 +697,26 @@ async function loadDashboard() {
             let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
             tpCont.innerHTML += `<div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;"><h4 style="color:var(--am); margin-bottom:10px;">${c}</h4><ul style="list-style:none; padding:0;">${prodsHtml}</ul></div>`;
         }
-    } catch(err) { console.error('Dashboard Load Error:', err); }
+    } catch(err) {}
 }
 
 let cachedAdminUsers = [], cachedAdminAuthUsers = [];
-async function adminAddUser(forceRole) {
-    let e = $('nuEmail').value.trim(), p = $('nuPass').value.trim(), comp = $('nuCompany') ? $('nuCompany').value.trim() : '', br = $('nuBranch') ? $('nuBranch').value.trim() : '', code = $('nuCode') ? $('nuCode').value.trim() : '', tgt = $('nuTarget') ? (Number($('nuTarget').value) || 0) : 0, comm = $('nuCommission') ? (Number($('nuCommission').value) || 0) : 0, r = forceRole || ($('nuRole') ? $('nuRole').value : 'promoter');
-    if(!e || !p) return toast('???? ???????', 'error');
-    
-    let perms = {};
-    if (r === 'promoter') {
-        perms = {
-            sales: $('nuPermSales') ? $('nuPermSales').checked : true,
-            attendance: $('nuPermAtt') ? $('nuPermAtt').checked : true,
-            price: $('nuPermPrice') ? $('nuPermPrice').checked : true
-        };
-    } else {
-        perms = {
-            admin_dash: $('nuPermAdminDash') ? $('nuPermAdminDash').checked : true,
-            admin_sales: $('nuPermAdminSales') ? $('nuPermAdminSales').checked : true,
-            admin_promoters: $('nuPermAdminPromoters') ? $('nuPermAdminPromoters').checked : true,
-            admin_subadmins: $('nuPermAdminSubadmins') ? $('nuPermAdminSubadmins').checked : true,
-            admin_attendance: $('nuPermAdminAtt') ? $('nuPermAdminAtt').checked : true,
-            admin_products: $('nuPermAdminProd') ? $('nuPermAdminProd').checked : true,
-            admin_companies: $('nuPermAdminComp') ? $('nuPermAdminComp').checked : true
-        };
-    }
-    
+async function adminAddUser() {
+    let e = $('nuEmail').value.trim(), p = $('nuPass').value.trim(), comp = $('nuCompany').value.trim(), br = $('nuBranch').value.trim(), code = $('nuCode').value.trim(), tgt = Number($('nuTarget').value) || 0, comm = Number($('nuCommission').value) || 0, r = $('nuRole').value;
+    if(!e || !p) return toast('يرجى التعبئة', 'error');
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).get();
-        if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('???? ??????', 'error'); }
+        if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('مسجل بالفعل', 'error'); }
         let uid = editingUserUid || 'usr_' + Date.now();
         await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
-        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid, permissions: perms });
-        toast('?? ?????', 'success'); cancelEditUser(r); loadAdminUsers(r);
+        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid });
+        toast('تم الحفظ', 'success'); cancelEditUser(); loadAdminUsers();
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
 
-async function loadAdminUsers(filterRole) {
+async function loadAdminUsers() {
     let tb = $('usersTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
     try {
@@ -1026,26 +725,11 @@ async function loadAdminUsers(filterRole) {
             db.collection('users').onSnapshot(snap2 => {
                 cachedAdminUsers = snap2.docs.map(d => d.data());
                 if(!$('usersTable')) return;
-                
-                let filtered = cachedAdminUsers.filter(u => filterRole ? u.role === filterRole : true);
-                
-                if (filterRole === 'promoter') {
-                    $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
-                } else {
-                    $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('action')}</th></tr>`;
-                }
-                
-                let index = 0;
-                filtered.forEach(u => {
-                    if (filterRole === 'promoter') {
-                        let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%;"></div></div>` : '';
-                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">??</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">??</button></td></tr>`;
-                    } else {
-                        $('usersTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.1}s"><td>${u.email}</td><td>${u.company || '-'} / ${u.branch || '-'}</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">??</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">??</button></td></tr>`;
-                    }
-                    index++;
+                $('usersTable').innerHTML = `<tr><th>${t('role')}</th><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
+                cachedAdminUsers.forEach(u => {
+                    let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
+                    $('usersTable').innerHTML += `<tr><td><span class="badge">${u.role}</span></td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
+                        <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
                 });
                 $('loader').classList.add('hidden');
             });
@@ -1055,82 +739,24 @@ async function loadAdminUsers(filterRole) {
     }
 }
 
-function editUser(uid, role) {
+function editUser(uid) {
     let u = cachedAdminUsers.find(x => x.uid === uid), au = cachedAdminAuthUsers.find(x => x.uid === uid);
     if(!u || !au) return;
     editingUserUid = uid;
-    $('nuEmail').value = u.email; $('nuPass').value = au.password; 
-    if($('nuCompany')) $('nuCompany').value = u.company || ''; 
-    if($('nuBranch')) $('nuBranch').value = u.branch || ''; 
-    if($('nuCode')) $('nuCode').value = u.promoterCode || ''; 
-    if($('nuTarget')) $('nuTarget').value = u.target || 0; 
-    if($('nuCommission')) $('nuCommission').value = u.commissionRate || 0; 
-    if($('nuRole')) $('nuRole').value = u.role || 'promoter';
-    
-    if (role === 'promoter') {
-        if(u.permissions) {
-            if($('nuPermSales')) $('nuPermSales').checked = u.permissions.sales !== false;
-            if($('nuPermAtt')) $('nuPermAtt').checked = u.permissions.attendance !== false;
-            if($('nuPermPrice')) $('nuPermPrice').checked = u.permissions.price !== false;
-        } else {
-            if($('nuPermSales')) $('nuPermSales').checked = true;
-            if($('nuPermAtt')) $('nuPermAtt').checked = true;
-            if($('nuPermPrice')) $('nuPermPrice').checked = true;
-        }
-    } else {
-        if(u.permissions) {
-            if($('nuPermAdminDash')) $('nuPermAdminDash').checked = u.permissions.admin_dash !== false;
-            if($('nuPermAdminSales')) $('nuPermAdminSales').checked = u.permissions.admin_sales !== false;
-            if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = u.permissions.admin_promoters !== false;
-            if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = u.permissions.admin_subadmins !== false;
-            if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = u.permissions.admin_attendance !== false;
-            if($('nuPermAdminProd')) $('nuPermAdminProd').checked = u.permissions.admin_products !== false;
-            if($('nuPermAdminComp')) $('nuPermAdminComp').checked = u.permissions.admin_companies !== false;
-        } else {
-            if($('nuPermAdminDash')) $('nuPermAdminDash').checked = true;
-            if($('nuPermAdminSales')) $('nuPermAdminSales').checked = true;
-            if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = true;
-            if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = true;
-            if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = true;
-            if($('nuPermAdminProd')) $('nuPermAdminProd').checked = true;
-            if($('nuPermAdminComp')) $('nuPermAdminComp').checked = true;
-        }
-    }
-
-    $('formUserTitle').innerText = '????? ?????? ??????'; $('btnUserAction').innerText = '??? ??'; $('btnUserCancel').classList.remove('hidden'); window.scrollTo({top: 0, behavior: 'smooth'});
+    $('nuEmail').value = u.email; $('nuPass').value = au.password; $('nuCompany').value = u.company; $('nuBranch').value = u.branch; $('nuCode').value = u.promoterCode; $('nuTarget').value = u.target || 0; $('nuCommission').value = u.commissionRate || 0; $('nuRole').value = u.role || 'promoter';
+    $('formUserTitle').innerText = 'تعديل بيانات الحساب'; $('btnUserAction').innerText = 'حفظ 💾'; $('btnUserCancel').classList.remove('hidden'); window.scrollTo({top: 0, behavior: 'smooth'});
 }
-function cancelEditUser(role) {
-    editingUserUid = null; $('nuEmail').value = ''; $('nuPass').value = ''; 
-    if($('nuCompany')) $('nuCompany').value = ''; 
-    if($('nuBranch')) $('nuBranch').value = ''; 
-    if($('nuCode')) $('nuCode').value = ''; 
-    if($('nuTarget')) $('nuTarget').value = ''; 
-    if($('nuCommission')) $('nuCommission').value = ''; 
-    
-    $('btnUserAction').innerText = '????? ?'; $('btnUserCancel').classList.add('hidden');
-    
-    if (role === 'promoter') {
-        if($('nuPermSales')) $('nuPermSales').checked = true;
-        if($('nuPermAtt')) $('nuPermAtt').checked = true;
-        if($('nuPermPrice')) $('nuPermPrice').checked = true;
-    } else {
-        if($('nuPermAdminDash')) $('nuPermAdminDash').checked = true;
-        if($('nuPermAdminSales')) $('nuPermAdminSales').checked = true;
-        if($('nuPermAdminPromoters')) $('nuPermAdminPromoters').checked = true;
-        if($('nuPermAdminSubadmins')) $('nuPermAdminSubadmins').checked = true;
-        if($('nuPermAdminAtt')) $('nuPermAdminAtt').checked = true;
-        if($('nuPermAdminProd')) $('nuPermAdminProd').checked = true;
-        if($('nuPermAdminComp')) $('nuPermAdminComp').checked = true;
-    }
+function cancelEditUser() {
+    editingUserUid = null; $('nuEmail').value = ''; $('nuPass').value = ''; $('nuCompany').value = ''; $('nuBranch').value = ''; $('nuCode').value = ''; $('nuTarget').value = ''; $('nuCommission').value = ''; $('btnUserAction').innerText = 'إضافة ➕'; $('btnUserCancel').classList.add('hidden');
 }
-async function deleteUser(uid, role) {
-    if(!confirm('????')) return;
-    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers(role);
+async function deleteUser(uid) {
+    if(!confirm('حذف؟')) return;
+    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers();
 }
 
 async function uploadProductsExcel() {
     let compInput = $('prodCompany').value.trim(), fileInput = $('prodFile');
-    if(!fileInput.files.length) return toast('???? ?????? ??? ???????', 'error');
+    if(!fileInput.files.length) return toast('يرجى اختيار ملف الإكسيل', 'error');
     
     $('loader').classList.remove('hidden');
     let reader = new FileReader();
@@ -1138,14 +764,14 @@ async function uploadProductsExcel() {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-            if(json.length < 2) throw new Error("????? ????");
+            if(json.length < 2) throw new Error("الملف فارغ");
             
-            // Detect format: Exported format has 4+ columns and first column is usually '??????'
-            let isExportFormat = (json[0] && json[0].length >= 4 && (String(json[0][0]).includes('????') || String(json[0][0]).includes('Company')));
+            // Detect format: Exported format has 4+ columns and first column is usually 'الشركة'
+            let isExportFormat = (json[0] && json[0].length >= 4 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
             
             if(!compInput && !isExportFormat) {
                 $('loader').classList.add('hidden');
-                return toast('???? ????? ??? ?????? ?? ?????? ?????', 'error');
+                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
             }
 
             const batch = db.batch();
@@ -1168,7 +794,7 @@ async function uploadProductsExcel() {
                     if(code && code !== 'undefined') {
                         batch.set(db.collection('products').doc(), { 
                             adminId: currentUser.uid, 
-                            company: c || '???? ????', 
+                            company: c || 'بدون شركة', 
                             itemCode: code, 
                             description: desc, 
                             price: price, 
@@ -1178,7 +804,7 @@ async function uploadProductsExcel() {
                 }
             }
             await batch.commit(); 
-            toast('?? ????? ?????', 'success'); 
+            toast('تم الرفع بنجاح', 'success'); 
             $('prodCompany').value = ''; 
             fileInput.value = '';
         } catch(err) { console.error('Upload Error:', err); toast(err.message, 'error'); }
@@ -1193,18 +819,16 @@ async function loadAdminProducts() {
     db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('productsTable')) return;
         $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
-        let index = 0;
         snap.forEach(doc => {
             let p = doc.data(); 
-            $('productsTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">??</button></td></tr>`;
-            index++;
+            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
         });
         $('loader').classList.add('hidden');
     }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
 }
 
 async function deleteAllProducts() {
-    if(!confirm('?? ??? ????? ?? ??? ???? ???????? ????????? ?? ???? ??????? ?? ??? ???????!')) return;
+    if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('products').where('adminId', '==', currentUser.uid).get();
@@ -1213,9 +837,9 @@ async function deleteAllProducts() {
             batch.delete(doc.ref);
         });
         await batch.commit();
-        toast('?? ??? ???? ???????? ?????', 'success');
+        toast('تم مسح جميع المنتجات بنجاح', 'success');
     } catch (err) {
-        toast('??? ?? ??? ????????: ' + err.message, 'error');
+        toast('خطأ في مسح المنتجات: ' + err.message, 'error');
     }
     $('loader').classList.add('hidden');
 }
@@ -1229,13 +853,13 @@ async function uploadStockExcel() {
         try {
             let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-            if(json.length < 2) throw new Error("????? ????");
+            if(json.length < 2) throw new Error("الملف فارغ");
             
-            let isExportFormat = (json[0] && json[0].length >= 5 && (String(json[0][0]).includes('????') || String(json[0][0]).includes('Company')));
+            let isExportFormat = (json[0] && json[0].length >= 5 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
             
             if(!compInput && !isExportFormat) {
                 $('loader').classList.add('hidden');
-                return toast('???? ????? ??? ?????? ?? ?????? ?????', 'error');
+                return toast('يرجى كتابة اسم الشركة في المربع أولاً', 'error');
             }
 
             const batch = db.batch();
@@ -1260,7 +884,7 @@ async function uploadStockExcel() {
                     if(code && code !== 'undefined') {
                         let docRef = db.collection('company_stock').doc();
                         batch.set(docRef, { 
-                            company: c || '???? ????', 
+                            company: c || 'بدون شركة', 
                             code: code, 
                             name: name, 
                             price: price, 
@@ -1285,20 +909,18 @@ function loadAdminStock() {
     $('loader').classList.remove('hidden');
     db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
         if(!$('stockTable')) return;
-        $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>????? / ?????</th><th>?????</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
-        let index = 0;
+        $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
         snap.forEach(doc => {
             let d = doc.data();
-            $('stockTable').innerHTML += `<tr class="animate-row" style="animation-delay: ${index * 0.05}s"><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
-                <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">??</button></td></tr>`;
-            index++;
+            $('stockTable').innerHTML += `<tr><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
+                <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">✖️</button></td></tr>`;
         });
         $('loader').classList.add('hidden');
     }, err => { $('loader').classList.add('hidden'); });
 }
 
 async function deleteAllStock() {
-    if(!confirm('?? ??? ????? ?? ??? ???? ???????? ????????? ?? ???? ??????? ?? ??? ???????!')) return;
+    if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('company_stock').where('adminId', '==', currentUser.uid).get();
@@ -1307,9 +929,9 @@ async function deleteAllStock() {
             batch.delete(doc.ref);
         });
         await batch.commit();
-        toast('?? ??? ???? ???????? ?????', 'success');
+        toast('تم مسح جميع المنتجات بنجاح', 'success');
     } catch (err) {
-        toast('??? ?? ??? ????????: ' + err.message, 'error');
+        toast('خطأ في مسح المنتجات: ' + err.message, 'error');
     }
     $('loader').classList.add('hidden');
 }
@@ -1321,7 +943,7 @@ async function deleteStock(id) {
 
 async function loadAllAttendance() {
     let tb = $('allAttTable'); if(!tb) return;
-    tb.innerHTML = `<tr><th>${t('promoter')}</th><th>${t('sale_date')}</th><th>???? 1</th><th>???? 2</th><th>${t('break_title')}</th></tr>`;
+    tb.innerHTML = `<tr><th>${t('promoter')}</th><th>${t('sale_date')}</th><th>فترة 1</th><th>فترة 2</th><th>${t('break_title')}</th></tr>`;
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
@@ -1331,15 +953,15 @@ async function loadAllAttendance() {
         let snap = await db.collection('attendance').orderBy('date', 'desc').limit(100).get();
         snap.docs.forEach(doc => {
             let d = doc.data();
-            let b1 = d.break1 ? (d.break1.end ? '?' : '?') : '?';
-            let b2 = d.break2 ? (d.break2.end ? '?' : '?') : '?';
+            let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
+            let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
             let user = cachedAdminUsers.find(u => u.uid === d.uid);
             let promoterName = user ? (user.email.split('@')[0] + ' (' + user.promoterCode + ')') : d.uid.substring(0,8);
-            let loc1Link = d.loc1 ? `<a href="https://maps.google.com/?q=${d.loc1}" target="_blank" style="text-decoration:none;">??</a>` : '';
-            let loc2Link = d.loc2 ? `<a href="https://maps.google.com/?q=${d.loc2}" target="_blank" style="text-decoration:none;">??</a>` : '';
-            let pic1Link = d.photo1 ? `<a href="#" onclick="window.open('${d.photo1}', '_blank')" style="text-decoration:none;">??</a>` : '';
-            let pic2Link = d.photo2 ? `<a href="#" onclick="window.open('${d.photo2}', '_blank')" style="text-decoration:none;">??</a>` : '';
-            tb.innerHTML += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'?':'?'} ${loc1Link} ${pic1Link}</td><td>${d.slot2?'?':'?'} ${loc2Link} ${pic2Link}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            let loc1Link = d.loc1 ? `<a href="https://maps.google.com/?q=${d.loc1}" target="_blank" style="text-decoration:none;">📍</a>` : '';
+            let loc2Link = d.loc2 ? `<a href="https://maps.google.com/?q=${d.loc2}" target="_blank" style="text-decoration:none;">📍</a>` : '';
+            let pic1Link = d.photo1 ? `<a href="#" onclick="window.open('${d.photo1}', '_blank')" style="text-decoration:none;">📷</a>` : '';
+            let pic2Link = d.photo2 ? `<a href="#" onclick="window.open('${d.photo2}', '_blank')" style="text-decoration:none;">📷</a>` : '';
+            tb.innerHTML += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'✅':'❌'} ${loc1Link} ${pic1Link}</td><td>${d.slot2?'✅':'❌'} ${loc2Link} ${pic2Link}</td><td>B1:${b1} B2:${b2}</td></tr>`;
         });
     } catch(err) {}
     $('loader').classList.add('hidden');
@@ -1377,7 +999,7 @@ function checkOfflineQueue() {
         document.body.appendChild(syncBtn);
     }
     if (total > 0) {
-        syncBtn.innerText = `?? ?????? (${total})`;
+        syncBtn.innerText = `🔄 مزامنة (${total})`;
         syncBtn.style.display = 'block';
     } else {
         syncBtn.style.display = 'none';
@@ -1387,7 +1009,7 @@ window.addEventListener('online', checkOfflineQueue);
 setInterval(checkOfflineQueue, 15000);
 
 async function syncOfflineData() {
-    if (!navigator.onLine) return toast('?? ???? ????? ????????? ??????', 'error');
+    if (!navigator.onLine) return toast('لا يوجد اتصال بالإنترنت حالياً', 'error');
     $('loader').classList.remove('hidden');
     try {
         let sales = JSON.parse(localStorage.getItem('offlineSales') || '[]');
@@ -1417,15 +1039,13 @@ async function syncOfflineData() {
         }
         localStorage.removeItem('offlineAtt');
         
-        toast('??? ?????? ???????? ?????! ??', 'success');
+        toast('تمت مزامنة البيانات بنجاح! 🚀', 'success');
         checkOfflineQueue();
         setTimeout(() => window.location.reload(), 1000);
-    } catch(err) { toast('???? ????????: ' + err.message, 'error'); }
+    } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
     </script>
 </body>
 </html>
-
-
 
