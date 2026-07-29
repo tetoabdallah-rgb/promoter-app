@@ -104,7 +104,7 @@ select.input-box option { background: var(--bg-dark); color: var(--tx-main); }
 .btn-success:hover { box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
 
 /* Dashboard Layout */
-#app-screen { display: flex; flex-direction: row; padding: 24px; gap: 32px; height: 100vh; height: 100dvh; overflow: hidden; animation: fadeIn 0.8s ease-out; }
+#app-screen { display: flex; flex-direction: row; justify-content: flex-start; align-items: stretch; padding: 24px; gap: 32px; height: 100vh; height: 100dvh; overflow: hidden; animation: fadeIn 0.8s ease-out; }
 .sidebar { width: 280px; display: flex; flex-direction: column; flex-shrink: 0; }
 .main-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 28px; width: calc(100% - 312px); overflow: hidden; }
 
@@ -178,8 +178,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary)
 .perm-item:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
 .perm-item label { margin: 0; cursor: pointer; flex: 1; }
 
-@media (max-width: 768px) { 
-    #app-screen { flex-direction: column; padding: 16px; gap: 20px; } 
+@media (max-width: 768px) { #app-screen { flex-direction: column; padding: 16px; gap: 20px; } 
     .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 10px; align-items: center; } 
     .user-profile { margin: 0; padding: 0; border: none; margin-left: 20px; }
     .nav-links { flex-direction: row; flex: 1; }
@@ -189,3 +188,4 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary)
     .main-content { width: 100%; }
     .topbar { flex-direction: column; gap: 15px; text-align: center; }
 }
+
