@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -201,7 +201,7 @@ db.collection('auth_users').where('email', '==', adminEmail.toLowerCase()).get()
 }).catch(e => console.log(e));
 
 $('loginTitle').innerText = t('login_title'); $('loginSub').innerText = t('login_subtitle');
-$('authEmail').placeholder = t('email_ph'); $('authPass').placeholder = t('pass_ph');
+$('authEmail').placeholder = "اسم البروموتر (للدخول)"; $('authPass').placeholder = t('pass_ph');
 $('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang === 'ar' ? 'English' : 'عربي';
 
 checkAuth();
@@ -349,7 +349,14 @@ function nav(page) {
     }
     else if (page === 'admin_promoters') {
         title = 'إدارة المروجين';
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة مروج جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter" selected>${t('role_promoter')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="grid-column: span 3;"><label>صلاحيات المروج</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermSales" checked> إضافة مبيعات</label><label><input type="checkbox" id="nuPermAtt" checked> تسجيل حضور</label><label><input type="checkbox" id="nuPermPrice" checked> رؤية الأسعار</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('promoter')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('promoter')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;">
+            <h3>رفع البروموترز (Excel)</h3>
+            <div class="grid-2" style="margin-top:10px;">
+                <div class="fg"><label>ملف إكسيل (.xlsx)</label><input type="file" id="promoterFile" class="input-box" accept=".xlsx"></div>
+            </div>
+            <button class="btn btn-primary" style="margin-top: 10px; width:200px;" onclick="uploadPromotersExcel()">رفع 📤</button>
+        </div>
+        <div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة مروج جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>اسم البروموتر (للدخول)</label><input type="text" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg hidden"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter" selected>${t('role_promoter')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="grid-column: span 3;"><label>صلاحيات المروج</label><div style="display:flex; flex-wrap:wrap; gap:15px; margin-top:5px;"><label><input type="checkbox" id="nuPermSales" checked> إضافة مبيعات</label><label><input type="checkbox" id="nuPermAtt" checked> تسجيل حضور</label><label><input type="checkbox" id="nuPermPrice" checked> رؤية الأسعار</label></div></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser('promoter')">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser('promoter')">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
         setTimeout(() => loadAdminUsers('promoter'), 100);
     }
     else if (page === 'admin_subadmins') {
@@ -889,7 +896,7 @@ async function loadAdminUsers(filterRole) {
                 let filtered = cachedAdminUsers.filter(u => filterRole ? u.role === filterRole : true);
                 
                 if (filterRole === 'promoter') {
-                    $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
+                    $('usersTable').innerHTML = `<tr><th>اسم البروموتر</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
                 } else {
                     $('usersTable').innerHTML = `<tr><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('action')}</th></tr>`;
                 }
@@ -1038,6 +1045,52 @@ async function uploadProductsExcel() {
             toast('تم الرفع بنجاح', 'success'); 
             $('prodCompany').value = ''; 
             fileInput.value = '';
+        } catch(err) { console.error('Upload Error:', err); toast(err.message, 'error'); }
+        $('loader').classList.add('hidden');
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+async function uploadPromotersExcel() {
+    let fileInput = $('promoterFile');
+    if(!fileInput.files.length) return toast('يرجى اختيار ملف الإكسيل', 'error');
+    
+    $('loader').classList.remove('hidden');
+    let reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
+            let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            if(json.length < 2) throw new Error("الملف فارغ");
+            
+            const batch = db.batch();
+            for(let i = 1; i < json.length; i++) {
+                let row = json[i];
+                if(row.length > 0) {
+                    let email = String(row[0] || '').trim(); // email or name
+                    let password = String(row[1] || '').trim();
+                    let company = String(row[2] || '').trim();
+                    let branch = String(row[3] || '').trim();
+                    let code = String(row[4] || '').trim();
+                    let target = Number(row[5] || 0);
+                    let comm = Number(row[6] || 0);
+                    
+                    if(email && password) {
+                        let uid = 'usr_' + Date.now() + '_' + i;
+                        batch.set(db.collection('auth_users').doc(uid), {
+                            uid: uid, email: email.toLowerCase(), password: password
+                        });
+                        batch.set(db.collection('users').doc(uid), {
+                            uid: uid, email: email.toLowerCase(), role: 'promoter', promoterCode: code, branch: branch, company: company, target: target, commissionRate: comm, adminId: currentUser.uid,
+                            permissions: { sales: true, attendance: true, price: true }
+                        });
+                    }
+                }
+            }
+            await batch.commit(); 
+            toast('تم الرفع بنجاح', 'success'); 
+            fileInput.value = '';
+            loadAdminUsers('promoter');
         } catch(err) { console.error('Upload Error:', err); toast(err.message, 'error'); }
         $('loader').classList.add('hidden');
     };
