@@ -1,4 +1,4 @@
-const CACHE_NAME = 'promoter-cache-v42';
+const CACHE_NAME = 'promoter-cache-v43';
 const urlsToCache = [
   './',
   './index.html',
