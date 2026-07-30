@@ -842,11 +842,11 @@ async function loadDashboard() {
         });
         
         if(chart1) chart1.destroy();
-        chart1 = new Chart(document.getElementById('chartCompany').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
+        chart1 = new Chart(document.getElementById('companyChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
         if(chart2) chart2.destroy();
-        chart2 = new Chart(document.getElementById('chartBranch').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(brObj), datasets: [{ data: Object.values(brObj), backgroundColor: ['#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } });
+        chart2 = new Chart(document.getElementById('branchChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(brObj), datasets: [{ data: Object.values(brObj), backgroundColor: ['#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } });
         
-        let lbCont = chartPromoters ? chartPromoters.parentElement : null;
+        let lbCont = document.getElementById('leaderboardContainer');
         if(lbCont) {
             lbCont.innerHTML = '';
             let topPromoters = Object.entries(promoterObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
@@ -860,7 +860,7 @@ async function loadDashboard() {
             });
         }
 
-        let tpCont = document.getElementById('chartProducts') ? document.getElementById('chartProducts').parentElement : null; if(tpCont) tpCont.innerHTML = '';
+        let tpCont = document.getElementById('topProductsContainer'); if(tpCont) tpCont.innerHTML = '';
         for(let c in prodObj) {
             let sortedProds = Object.entries(prodObj[c]).sort((a,b) => b[1] - a[1]).slice(0, 5);
             let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
