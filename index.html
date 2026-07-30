@@ -390,12 +390,16 @@ async function loadPromoterProgress() {
     $('prmTargetVal').innerText = target;
     try {
         let d = new Date(), monthStart = new Date(d.getFullYear(), d.getMonth(), 1).toISOString();
-        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).where('timestamp', '>=', new Date(monthStart)).get();
-        let totalSales = 0; snap.docs.forEach(doc => totalSales += doc.data().price);
-        $('prmSalesVal').innerText = totalSales;
-        let p = target > 0 ? Math.min((totalSales / target) * 100, 100) : 0;
+        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).get();
+        let currentSales = 0;
+        snap.forEach(doc => { 
+            let d = doc.data();
+            if (d.date >= monthStart) currentSales += Number(d.price); 
+        });
+        $('prmSalesVal').innerText = currentSales;
+        let p = target > 0 ? Math.min((currentSales / target) * 100, 100) : 0;
         $('prmTargetBar').style.width = p + '%';
-        $('prmCommVal').innerText = ((totalSales * commRate) / 100).toFixed(2);
+        $('prmCommVal').innerText = ((currentSales * commRate) / 100).toFixed(2);
     } catch(err) {}
 }
 
@@ -403,7 +407,7 @@ let cachedProducts = [];
 async function initPromoterSales() {
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
+        let snap = await db.collection('products').where('company', '==', userData.company).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let list = $('productsList');
         if(list) {
@@ -411,7 +415,7 @@ async function initPromoterSales() {
             cachedProducts.forEach(p => { list.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
         }
         loadMySales();
-    } catch(err) { $('loader').classList.add('hidden'); }
+    } catch(err) { $('loader').classList.remove('hidden'); }
 }
 
 let html5QrcodeScanner = null;
@@ -490,7 +494,7 @@ async function submitSale() {
         });
         
         try {
-            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).where('adminId', '==', userData.adminId || currentUser.uid).get();
+            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).get();
             if (!stockSnap.empty) {
                 let stockDoc = stockSnap.docs[0];
                 let currentQty = Number(stockDoc.data().quantity);
@@ -512,9 +516,15 @@ async function loadMySales() {
     let tb = $('mySalesTable'); if(!tb) return;
     tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
-        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
-        snap.docs.forEach(doc => {
-            let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
+        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).get();
+        let docs = snap.docs.map(d => d.data());
+        docs.sort((a,b) => {
+            let dtA = a.date + ' ' + (a.time || '');
+            let dtB = b.date + ' ' + (b.time || '');
+            return dtB.localeCompare(dtA);
+        });
+        docs.slice(0, 10).forEach(d => {
+            let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
             let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
             tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
@@ -600,11 +610,19 @@ async function processAttendance(slot, loc, photoBase64) {
         let docRef = db.collection('attendance').doc(currentUser.uid + "_" + d);
         let docSnap = await docRef.get();
         let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-        if (slot === 1) { data.slot1 = true; data.loc1 = loc; data.photo1 = photoBase64; }
-        if (slot === 2) { data.slot2 = true; data.loc2 = loc; data.photo2 = photoBase64; }
-        await docRef.set(data, {merge: true});
-        toast('تم الحضور', 'success'); 
-        if($('attPhoto')) $('attPhoto').value = '';
+        let now = Date.now();
+        let breakKey = 'break' + slot;
+        if (!data[breakKey]) {
+            data[breakKey] = { start: now, end: null };
+            await docRef.set(data, {merge: true});
+            toast(t('break_started'), 'success');
+        } else if (data[breakKey] && !data[breakKey].end) {
+            data[breakKey].end = now;
+            await docRef.set(data, {merge: true});
+            toast(t('break_ended'), 'success');
+        } else {
+            toast(t('break_already_completed'), 'error');
+        }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
 }
@@ -632,7 +650,7 @@ async function toggleBreak(b) {
         }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    $('loader').classList.remove('hidden');
 }
 
 function setupBreakUI(b, breakData) {
@@ -675,10 +693,11 @@ async function loadMyAttendance() {
     let tb = $('myAttTable'); if(!tb) return;
     tb.innerHTML = `<tr><th>${t('sale_date')}</th><th>${t('shift_1')}</th><th>${t('shift_2')}</th><th>${t('break_title')}</th></tr>`;
     try {
-        let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
+        let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).get();
+        let docs = snap.docs.map(d => d.data());
+        docs.sort((a,b) => (b.date.localeCompare(a.date)));
         let today = new Date().toISOString().split('T')[0];
-        snap.docs.forEach(doc => {
-            let d = doc.data();
+        docs.slice(0, 10).forEach(d => {
             let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
             tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
@@ -697,8 +716,8 @@ async function loadAllSales() {
         let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
         let toDate = $('saleToDate') ? $('saleToDate').value : '';
         
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
-        let docs = snap.docs.map(d => d.data());
+        let snap = await db.collection('sales').get();
+        let docs = snap.docs.map(d => d.data()); 
         
         if (fromDate) docs = docs.filter(d => d.date >= fromDate);
         if (toDate) docs = docs.filter(d => d.date <= toDate);
@@ -732,7 +751,7 @@ async function loadAllSales() {
             }
         }
         tb.innerHTML = html;
-    } catch(err) { console.error(err); }
+    } catch(err) { console.error(err); toast('Error loading data: ' + err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
 
@@ -743,7 +762,7 @@ async function generatePayroll() {
     
     $('loader').classList.remove('hidden');
     try {
-        let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
+        let uSnap = await db.collection('users').get();
         let promoters = {};
         uSnap.docs.forEach(d => {
             let u = d.data();
@@ -760,7 +779,7 @@ async function generatePayroll() {
             }
         });
 
-        let sSnap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
+        let sSnap = await db.collection('sales').get();
         sSnap.docs.forEach(doc => {
             let s = doc.data();
             if (s.date >= fromDate && s.date <= toDate) {
@@ -808,9 +827,9 @@ async function generatePayroll() {
 async function loadDashboard() {
     let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
     try {
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get(); 
+        let snap = await db.collection('sales').get(); 
         
-        let docs = snap.docs.map(d => d.data());
+        let docs = snap.docs.map(d => d.data()); 
         docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
         let recentDocs = docs.slice(0, 1000); // Process last 1000 sales
         
@@ -823,11 +842,11 @@ async function loadDashboard() {
         });
         
         if(chart1) chart1.destroy();
-        chart1 = new Chart(document.getElementById('companyChart').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
+        chart1 = new Chart(document.getElementById('chartCompany').getContext('2d'), { type: 'bar', data: { labels: Object.keys(compObj), datasets: [{ label: 'Sales', data: Object.values(compObj), backgroundColor: '#3b82f6' }] }, options: { responsive: true } });
         if(chart2) chart2.destroy();
-        chart2 = new Chart(document.getElementById('branchChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(brObj), datasets: [{ data: Object.values(brObj), backgroundColor: ['#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } });
+        chart2 = new Chart(document.getElementById('chartBranch').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(brObj), datasets: [{ data: Object.values(brObj), backgroundColor: ['#10b981','#f59e0b','#ef4444','#8b5cf6'] }] }, options: { responsive: true } });
         
-        let lbCont = $('leaderboardContainer');
+        let lbCont = chartPromoters ? chartPromoters.parentElement : null;
         if(lbCont) {
             lbCont.innerHTML = '';
             let topPromoters = Object.entries(promoterObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
@@ -841,7 +860,7 @@ async function loadDashboard() {
             });
         }
 
-        let tpCont = $('topProductsContainer'); tpCont.innerHTML = '';
+        let tpCont = document.getElementById('chartProducts') ? document.getElementById('chartProducts').parentElement : null; if(tpCont) tpCont.innerHTML = '';
         for(let c in prodObj) {
             let sortedProds = Object.entries(prodObj[c]).sort((a,b) => b[1] - a[1]).slice(0, 5);
             let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
@@ -880,7 +899,7 @@ async function adminAddUser(forceRole) {
         if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('مسجل بالفعل', 'error'); }
         let uid = editingUserUid || 'usr_' + Date.now();
         await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
-        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid, permissions: perms });
+        await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: userData.adminId || currentUser.uid, permissions: perms });
         toast('تم الحفظ', 'success'); cancelEditUser(r); loadAdminUsers(r);
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
@@ -907,11 +926,13 @@ async function loadAdminUsers(filterRole) {
                 filtered.forEach(u => {
                     if (filterRole === 'promoter') {
                         let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
+                        let actionHtml = (userData.adminId === currentUser.uid) ? `<button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button>` : `-`;
                         $('usersTable').innerHTML += `<tr><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
+                            <td>${actionHtml}</td></tr>`;
                     } else {
+                        let actionHtml = (userData.adminId === currentUser.uid) ? `<button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button>` : `-`;
                         $('usersTable').innerHTML += `<tr><td>${u.email}</td><td>${u.company || '-'} / ${u.branch || '-'}</td>
-                            <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}', '${filterRole}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${filterRole}')">✖️</button></td></tr>`;
+                            <td>${actionHtml}</td></tr>`;
                     }
                 });
                 $('loader').classList.add('hidden');
@@ -922,7 +943,7 @@ async function loadAdminUsers(filterRole) {
     }
 }
 
-function editUser(uid, role) {
+function editUser(uid, role) { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     let u = cachedAdminUsers.find(x => x.uid === uid), au = cachedAdminAuthUsers.find(x => x.uid === uid);
     if(!u || !au) return;
     editingUserUid = uid;
@@ -990,7 +1011,7 @@ function cancelEditUser(role) {
         if($('nuPermAdminComp')) $('nuPermAdminComp').checked = true;
     }
 }
-async function deleteUser(uid, role) {
+async function deleteUser(uid, role) { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('حذف؟')) return;
     await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers(role);
 }
@@ -1034,7 +1055,7 @@ async function uploadProductsExcel() {
                     
                     if(code && code !== 'undefined') {
                         batch.set(db.collection('products').doc(), { 
-                            adminId: currentUser.uid, 
+                            adminId: userData.adminId || currentUser.uid, 
                             company: c || 'بدون شركة', 
                             itemCode: code, 
                             description: desc, 
@@ -1084,7 +1105,7 @@ async function uploadPromotersExcel() {
                             uid: uid, email: email.toLowerCase(), password: password
                         });
                         batch.set(db.collection('users').doc(uid), {
-                            uid: uid, email: email.toLowerCase(), role: 'promoter', promoterCode: code, branch: branch, company: company, target: target, commissionRate: comm, adminId: currentUser.uid,
+                            uid: uid, email: email.toLowerCase(), role: 'promoter', promoterCode: code, branch: branch, company: company, target: target, commissionRate: comm, adminId: userData.adminId || currentUser.uid,
                             permissions: { sales: true, attendance: true, price: true }
                         });
                     }
@@ -1103,22 +1124,23 @@ async function uploadPromotersExcel() {
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+    db.collection('products').onSnapshot(snap => {
         if(!$('productsTable')) return;
         $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
         snap.forEach(doc => {
             let p = doc.data(); 
-            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
+            let actionHtml = (userData.adminId === currentUser.uid) ? `<button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button>` : `-`;
+            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td>${actionHtml}</td></tr>`;
         });
         $('loader').classList.add('hidden');
     }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
 }
 
-async function deleteAllProducts() {
+async function deleteAllProducts() { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').where('adminId', '==', currentUser.uid).get();
+        let snap = await db.collection('products').get();
         const batch = db.batch();
         snap.forEach(doc => {
             batch.delete(doc.ref);
@@ -1176,7 +1198,7 @@ async function uploadStockExcel() {
                             name: name, 
                             price: price, 
                             quantity: qty, 
-                            adminId: currentUser.uid 
+                            adminId: userData.adminId || currentUser.uid 
                         });
                     }
                 }
@@ -1194,7 +1216,7 @@ async function uploadStockExcel() {
 function loadAdminStock() {
     let tb = $('stockTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+    db.collection('company_stock').onSnapshot(snap => {
         if(!$('stockTable')) return;
         $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
         snap.forEach(doc => {
@@ -1206,11 +1228,11 @@ function loadAdminStock() {
     }, err => { $('loader').classList.add('hidden'); });
 }
 
-async function deleteAllStock() {
+async function deleteAllStock() { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('company_stock').where('adminId', '==', currentUser.uid).get();
+        let snap = await db.collection('company_stock').get();
         const batch = db.batch();
         snap.forEach(doc => {
             batch.delete(doc.ref);
@@ -1234,7 +1256,7 @@ async function loadAllAttendance() {
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
-            let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
+            let uSnap = await db.collection('users').get();
             cachedAdminUsers = uSnap.docs.map(d => d.data());
         }
         let snap = await db.collection('attendance').orderBy('date', 'desc').limit(100).get();
@@ -1305,7 +1327,7 @@ async function syncOfflineData() {
             s.timestamp = firebase.firestore.FieldValue.serverTimestamp();
             s.adminId = userData.adminId || currentUser.uid; await db.collection('sales').doc().set(s);
             try {
-                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).where('adminId', '==', userData.adminId || currentUser.uid).get();
+                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).get();
                 if (!stockSnap.empty) {
                     let stockDoc = stockSnap.docs[0];
                     let currentQty = Number(stockDoc.data().quantity);
@@ -1332,11 +1354,11 @@ async function syncOfflineData() {
     } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
-async function deleteAllUsers(role) {
+async function deleteAllUsers(role) { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح جميع الحسابات المحددة؟ لا يمكن التراجع!')) return;
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('users').where('adminId', '==', currentUser.uid).where('role', '==', role).get();
+        let snap = await db.collection('users').where('role', '==', role).get();
         const batch = db.batch();
         const authBatch = db.batch();
         let count = 0;
@@ -1357,11 +1379,11 @@ async function deleteAllUsers(role) {
     $('loader').classList.add('hidden');
 }
 
-async function deleteAllSales() {
+async function deleteAllSales() { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح جميع المبيعات الخاصة بك؟')) return;
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
+        let snap = await db.collection('sales').get();
         const batch = db.batch();
         snap.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
@@ -1371,12 +1393,12 @@ async function deleteAllSales() {
     $('loader').classList.add('hidden');
 }
 
-async function deleteAllAttendance() {
+async function deleteAllAttendance() { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح سجل الحضور الخاص بك؟')) return;
     $('loader').classList.remove('hidden');
     try {
         // Find users for this admin
-        let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
+        let uSnap = await db.collection('users').get();
         let adminUsers = uSnap.docs.map(d => d.id);
         if (adminUsers.length === 0) return toast('لا يوجد حضور', 'info');
 
