@@ -1329,6 +1329,70 @@ async function syncOfflineData() {
     } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
+async function deleteAllUsers(role) {
+    if(!confirm('هل أنت متأكد من مسح جميع الحسابات المحددة؟ لا يمكن التراجع!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('users').where('adminId', '==', currentUser.uid).where('role', '==', role).get();
+        const batch = db.batch();
+        const authBatch = db.batch();
+        let count = 0;
+        snap.forEach(doc => {
+            if(doc.id !== 'admin_root' && doc.id !== currentUser.uid) { // Never delete self or root admin
+                batch.delete(db.collection('users').doc(doc.id));
+                authBatch.delete(db.collection('auth_users').doc(doc.id));
+                count++;
+            }
+        });
+        if (count > 0) {
+            await batch.commit();
+            await authBatch.commit();
+        }
+        toast('تم المسح بنجاح', 'success');
+        loadAdminUsers(role);
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function deleteAllSales() {
+    if(!confirm('هل أنت متأكد من مسح جميع المبيعات الخاصة بك؟')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('sales').where('adminId', '==', currentUser.uid).get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        toast('تم مسح جميع المبيعات', 'success');
+        loadAllSales();
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function deleteAllAttendance() {
+    if(!confirm('هل أنت متأكد من مسح سجل الحضور الخاص بك؟')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        // Find users for this admin
+        let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
+        let adminUsers = uSnap.docs.map(d => d.id);
+        if (adminUsers.length === 0) return toast('لا يوجد حضور', 'info');
+
+        let snap = await db.collection('attendance').get(); 
+        const batch = db.batch();
+        let count = 0;
+        snap.forEach(doc => {
+            if (adminUsers.includes(doc.data().uid)) {
+                batch.delete(doc.ref);
+                count++;
+            }
+        });
+        if (count > 0) await batch.commit();
+        toast('تم مسح الحضور', 'success');
+        loadAllAttendance();
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
     </script>
 </body>
 </html>
