@@ -464,45 +464,30 @@ async function submitSale() {
     try {
         let imageUrl = '';
         if (photo) {
-            let storageRef = storage.ref(`receipts/${currentUser.uid}_${Date.now()}_${photo.name}`);
-            let uploadTask = await storageRef.put(photo);
-            imageUrl = await uploadTask.ref.getDownloadURL();
+            imageUrl = await resizeImage(photo, 600);
         }
         let commEarned = (Number(p) * (userData.commissionRate || 0)) / 100;
-        
-        if (!navigator.onLine) {
-            let offlineQueue = JSON.parse(localStorage.getItem('offlineSales') || '[]');
-            offlineQueue.push({
-                uid: currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
-                itemCode: c, price: Number(p), description: desc, commission: commEarned, imageUrl: imageUrl,
-                date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0]
-            });
-            localStorage.setItem('offlineSales', JSON.stringify(offlineQueue));
-            toast('تم الحفظ محلياً (بدون إنترنت). يرجى المزامنة لاحقاً!', 'success');
-            $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
-            loadMySales();
-            checkOfflineQueue();
-            $('loader').classList.add('hidden');
-            return;
-        }
 
-        await db.collection('sales').doc().set({
-        uid: currentUser.uid,
-        adminId: userData.adminId || currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
+        db.collection('sales').doc().set({
+            uid: currentUser.uid,
+            adminId: userData.adminId || currentUser.uid, promoterCode: userData.promoterCode, branch: userData.branch, company: userData.company,
             itemCode: c, price: Number(p), description: desc, commission: commEarned, imageUrl: imageUrl,
             date: new Date().toISOString().split('T')[0], time: new Date().toTimeString().split(' ')[0], timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        }).catch(err => console.error('Offline save error:', err));
         
-        try {
-            let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).get();
-            if (!stockSnap.empty) {
-                let stockDoc = stockSnap.docs[0];
-                let currentQty = Number(stockDoc.data().quantity);
-                if (currentQty > 0) {
-                    await db.collection('company_stock').doc(stockDoc.id).update({ quantity: currentQty - 1 });
+        (async () => {
+            try {
+                let getOpts = navigator.onLine ? {} : {source: 'cache'};
+                let stockSnap = await db.collection('company_stock').where('company', '==', userData.company).where('code', '==', c).get(getOpts);
+                if (!stockSnap.empty) {
+                    let stockDoc = stockSnap.docs[0];
+                    let currentQty = Number(stockDoc.data().quantity);
+                    if (currentQty > 0) {
+                        db.collection('company_stock').doc(stockDoc.id).update({ quantity: currentQty - 1 }).catch(e=>{});
+                    }
                 }
-            }
-        } catch(e) { console.error("Stock deduction failed", e); }
+            } catch(e) {}
+        })();
         toast('تم الحفظ بنجاح', 'success');
         $('sCode').value = ''; $('sPrice').value = ''; $('sDesc').value = ''; $('sPhoto').value = '';
         $('shareBox').classList.remove('hidden');
@@ -594,34 +579,37 @@ async function markAttendance(slot) {
 async function processAttendance(slot, loc, photoBase64) {
     $('locStatus').innerText = ""; 
     
-    if (!navigator.onLine) {
-        let offAtt = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
-        offAtt.push({slot: slot, loc: loc, photo: photoBase64, uid: currentUser.uid});
-        localStorage.setItem('offlineAtt', JSON.stringify(offAtt));
-        toast('تم حفظ الحضور محلياً. لا تنسَ المزامنة!', 'success');
-        if($('attPhoto')) $('attPhoto').value = '';
-        checkOfflineQueue();
-        $('loader').classList.add('hidden');
-        return;
-    }
-
     try {
         let d = new Date().toISOString().split('T')[0];
         let docRef = db.collection('attendance').doc(currentUser.uid + "_" + d);
-        let docSnap = await docRef.get();
-        let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-        let now = Date.now();
-        let breakKey = 'break' + slot;
-        if (!data[breakKey]) {
-            data[breakKey] = { start: now, end: null };
-            await docRef.set(data, {merge: true});
-            toast(t('break_started'), 'success');
-        } else if (data[breakKey] && !data[breakKey].end) {
-            data[breakKey].end = now;
-            await docRef.set(data, {merge: true});
-            toast(t('break_ended'), 'success');
+        let docSnap;
+        try {
+            docSnap = await docRef.get({source: navigator.onLine ? 'default' : 'cache'});
+        } catch(e) { docSnap = { exists: false, data: () => ({}) }; }
+        
+        let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, adminId: userData.adminId || currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+        
+        if (slot === 1 || slot === 2) {
+            data['slot' + slot] = true;
+            data['loc' + slot] = loc || '';
+            data['photo' + slot] = photoBase64 || '';
+            docRef.set(data, {merge: true}).catch(e => console.error(e));
+            toast('تم تسجيل الحضور', 'success');
+            if($('attPhoto')) $('attPhoto').value = '';
         } else {
-            toast(t('break_already_completed'), 'error');
+            let now = Date.now();
+            let breakKey = 'break' + slot;
+            if (!data[breakKey]) {
+                data[breakKey] = { start: now, end: null };
+                docRef.set(data, {merge: true}).catch(e => console.error(e));
+                toast(t('break_started'), 'success');
+            } else if (data[breakKey] && !data[breakKey].end) {
+                data[breakKey].end = now;
+                docRef.set(data, {merge: true}).catch(e => console.error(e));
+                toast(t('break_ended'), 'success');
+            } else {
+                toast(t('break_already_completed'), 'error');
+            }
         }
         loadMyAttendance();
     } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
@@ -633,17 +621,21 @@ async function toggleBreak(b) {
     try {
         let d = new Date().toISOString().split('T')[0];
         let docRef = db.collection('attendance').doc(currentUser.uid + "_" + d);
-        let docSnap = await docRef.get();
-        let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+        let docSnap;
+        try {
+            docSnap = await docRef.get({source: navigator.onLine ? 'default' : 'cache'});
+        } catch(e) { docSnap = { exists: false, data: () => ({}) }; }
+        
+        let data = docSnap.exists ? docSnap.data() : { uid: currentUser.uid, adminId: userData.adminId || currentUser.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
         let now = Date.now();
         let breakKey = 'break' + b;
         if (!data[breakKey]) {
             data[breakKey] = { start: now, end: null };
-            await docRef.set(data, {merge: true});
+            docRef.set(data, {merge: true}).catch(e=>console.log(e));
             toast(t('break_started'), 'success');
         } else if (data[breakKey] && !data[breakKey].end) {
             data[breakKey].end = now;
-            await docRef.set(data, {merge: true});
+            docRef.set(data, {merge: true}).catch(e=>console.log(e));
             toast(t('break_ended'), 'success');
         } else {
             toast(t('break_already_completed'), 'error');
@@ -1297,66 +1289,7 @@ function exportTableToExcel(tableId, filename) {
     XLSX.writeFile(wb, filename + "_" + Date.now() + ".xlsx");
 }
 
-function checkOfflineQueue() {
-    let sales = JSON.parse(localStorage.getItem('offlineSales') || '[]');
-    let atts = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
-    let total = sales.length + atts.length;
-    let syncBtn = $('syncBtn');
-    if (!syncBtn) {
-        syncBtn = document.createElement('button');
-        syncBtn.id = 'syncBtn';
-        syncBtn.className = 'btn btn-primary';
-        syncBtn.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:999; box-shadow:0 4px 6px rgba(0,0,0,0.3); font-weight:bold; font-size:1.1rem; padding:10px 20px; border-radius:20px;';
-        syncBtn.onclick = syncOfflineData;
-        document.body.appendChild(syncBtn);
-    }
-    if (total > 0) {
-        syncBtn.innerText = `🔄 مزامنة (${total})`;
-        syncBtn.style.display = 'block';
-    } else {
-        syncBtn.style.display = 'none';
-    }
-}
-window.addEventListener('online', checkOfflineQueue);
-setInterval(checkOfflineQueue, 15000);
 
-async function syncOfflineData() {
-    if (!navigator.onLine) return toast('لا يوجد اتصال بالإنترنت حالياً', 'error');
-    $('loader').classList.remove('hidden');
-    try {
-        let sales = JSON.parse(localStorage.getItem('offlineSales') || '[]');
-        let atts = JSON.parse(localStorage.getItem('offlineAtt') || '[]');
-        for (let s of sales) {
-            s.timestamp = firebase.firestore.FieldValue.serverTimestamp();
-            s.adminId = userData.adminId || currentUser.uid; await db.collection('sales').doc().set(s);
-            try {
-                let stockSnap = await db.collection('company_stock').where('company', '==', s.company).where('code', '==', s.itemCode).get();
-                if (!stockSnap.empty) {
-                    let stockDoc = stockSnap.docs[0];
-                    let currentQty = Number(stockDoc.data().quantity);
-                    if (currentQty > 0) await db.collection('company_stock').doc(stockDoc.id).update({ quantity: currentQty - 1 });
-                }
-            } catch(e) {}
-        }
-        localStorage.removeItem('offlineSales');
-        
-        for (let a of atts) {
-            let d = new Date().toISOString().split('T')[0];
-            let docRef = db.collection('attendance').doc(a.uid + "_" + d);
-            let docSnap = await docRef.get();
-            let data = docSnap.exists ? docSnap.data() : { uid: a.uid, date: d, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
-            if (a.slot === 1) { data.slot1 = true; data.loc1 = a.loc; data.photo1 = a.photo; }
-            if (a.slot === 2) { data.slot2 = true; data.loc2 = a.loc; data.photo2 = a.photo; }
-            await docRef.set(data, {merge: true});
-        }
-        localStorage.removeItem('offlineAtt');
-        
-        toast('تمت مزامنة البيانات بنجاح! 🚀', 'success');
-        checkOfflineQueue();
-        setTimeout(() => window.location.reload(), 1000);
-    } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
-    $('loader').classList.add('hidden');
-}
 async function deleteAllUsers(role) { if(userData.adminId !== currentUser.uid) return toast('?????? ??? ???????? ?????? ??????? ???', 'error');
     if(!confirm('هل أنت متأكد من مسح جميع الحسابات المحددة؟ لا يمكن التراجع!')) return;
     $('loader').classList.remove('hidden');
