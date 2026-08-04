@@ -716,7 +716,10 @@ async function loadAllSales() {
         let fromDate = $('saleFromDate') ? $('saleFromDate').value : '';
         let toDate = $('saleToDate') ? $('saleToDate').value : '';
         
-        let snap = await db.collection('sales').get();
+        let query = db.collection('sales').where('adminId', '==', userData.adminId || currentUser.uid);
+        if (fromDate) query = query.where('date', '>=', fromDate);
+        if (toDate) query = query.where('date', '<=', toDate);
+        let snap = await query.orderBy('date', 'desc').limit(2000).get();
         let docs = snap.docs.map(d => d.data()); 
         
         if (fromDate) docs = docs.filter(d => d.date >= fromDate);
@@ -762,7 +765,7 @@ async function generatePayroll() {
     
     $('loader').classList.remove('hidden');
     try {
-        let uSnap = await db.collection('users').get();
+        let uSnap = await db.collection('users').where('adminId', '==', userData.adminId || currentUser.uid).get();
         let promoters = {};
         uSnap.docs.forEach(d => {
             let u = d.data();
@@ -779,7 +782,7 @@ async function generatePayroll() {
             }
         });
 
-        let sSnap = await db.collection('sales').get();
+        let sSnap = await db.collection('sales').where('adminId', '==', userData.adminId || currentUser.uid).get();
         sSnap.docs.forEach(doc => {
             let s = doc.data();
             if (s.date >= fromDate && s.date <= toDate) {
@@ -790,7 +793,7 @@ async function generatePayroll() {
             }
         });
 
-        let aSnap = await db.collection('attendance').get();
+        let aSnap = await db.collection('attendance').where('date', '>=', fromDate).where('date', '<=', toDate).get();
         aSnap.docs.forEach(doc => {
             let a = doc.data();
             if (a.date >= fromDate && a.date <= toDate) {
@@ -827,7 +830,7 @@ async function generatePayroll() {
 async function loadDashboard() {
     let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
     try {
-        let snap = await db.collection('sales').get(); 
+        let snap = await db.collection('sales').where('adminId', '==', userData.adminId || currentUser.uid).get(); 
         
         let docs = snap.docs.map(d => d.data()); 
         docs.sort((a,b) => (b.date > a.date) ? 1 : ((b.date < a.date) ? -1 : 0));
@@ -911,7 +914,7 @@ async function loadAdminUsers(filterRole) {
     try {
         db.collection('auth_users').onSnapshot(snap1 => {
             cachedAdminAuthUsers = snap1.docs.map(d => d.data());
-            db.collection('users').onSnapshot(snap2 => {
+            db.collection('users').where('adminId', '==', userData.adminId || currentUser.uid).onSnapshot(snap2 => {
                 cachedAdminUsers = snap2.docs.map(d => d.data());
                 if(!$('usersTable')) return;
                 
@@ -1124,7 +1127,7 @@ async function uploadPromotersExcel() {
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    db.collection('products').onSnapshot(snap => {
+    db.collection('products').where('adminId', '==', userData.adminId || currentUser.uid).onSnapshot(snap => {
         if(!$('productsTable')) return;
         $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
         snap.forEach(doc => {
@@ -1140,7 +1143,7 @@ async function deleteAllProducts() { if(userData.adminId !== currentUser.uid) re
     if(!confirm('هل أنت متأكد من مسح جميع المنتجات المرفوعة؟ لا يمكن التراجع عن هذا الإجراء!')) return;
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').get();
+        let snap = await db.collection('products').where('adminId', '==', currentUser.uid).get();
         const batch = db.batch();
         snap.forEach(doc => {
             batch.delete(doc.ref);
@@ -1256,7 +1259,7 @@ async function loadAllAttendance() {
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
-            let uSnap = await db.collection('users').get();
+            let uSnap = await db.collection('users').where('adminId', '==', userData.adminId || currentUser.uid).get();
             cachedAdminUsers = uSnap.docs.map(d => d.data());
         }
         let snap = await db.collection('attendance').orderBy('date', 'desc').limit(100).get();
