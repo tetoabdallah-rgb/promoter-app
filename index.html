@@ -303,10 +303,14 @@ function buildNav() {
         if (!userData.permissions || userData.permissions.admin_dash !== false) links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
         if (!userData.permissions || userData.permissions.admin_sales !== false) links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
         if (!userData.permissions || userData.permissions.admin_promoters !== false) links += `<li onclick="nav('admin_promoters')">${t('admin_users')}</li>`;
-        if (!userData.permissions || userData.permissions.admin_subadmins !== false) links += `<li onclick="nav('admin_subadmins')">${t('admin_subadmins')}</li>`;
+        if (currentUser.uid === 'admin_root') links += `<li onclick="nav('admin_subadmins')">${t('admin_subadmins')}</li>`;
         if (!userData.permissions || userData.permissions.admin_attendance !== false) links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
         if (!userData.permissions || userData.permissions.admin_products !== false) links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
         if (!userData.permissions || userData.permissions.admin_companies !== false) links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
+        
+        if (currentUser.uid === 'admin_root') {
+            links += `<li onclick="downloadBackup()" style="background:var(--gn); margin-top:10px; color:white;">💾 استخراج نسخة احتياطية</li>`;
+        }
     } else {
         links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
         if (!userData.permissions || userData.permissions.sales !== false) {
@@ -1287,6 +1291,34 @@ function exportTableToExcel(tableId, filename) {
     if (!table) return;
     let wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
     XLSX.writeFile(wb, filename + "_" + Date.now() + ".xlsx");
+}
+
+async function downloadBackup() {
+    if(currentUser.uid !== 'admin_root') return toast('عذراً، صلاحية مدير النظام مطلوبة.', 'error');
+    $('loader').classList.remove('hidden');
+    toast('جاري تحضير النسخة الاحتياطية، قد يستغرق ذلك بعض الوقت...', 'success');
+    try {
+        let wb = XLSX.utils.book_new();
+        
+        let cols = ['users', 'sales', 'attendance', 'products', 'company_stock'];
+        for (let col of cols) {
+            let snap = await db.collection(col).get();
+            let data = snap.docs.map(doc => {
+                let d = doc.data();
+                if (d.timestamp) d.timestamp = new Date(d.timestamp.seconds * 1000).toLocaleString();
+                return d;
+            });
+            if (data.length === 0) data = [{ info: 'No data' }];
+            let ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, col);
+        }
+        
+        XLSX.writeFile(wb, "PromoterApp_Backup_" + new Date().toISOString().split('T')[0] + ".xlsx");
+        toast('تم تنزيل النسخة الاحتياطية بنجاح!', 'success');
+    } catch (e) {
+        toast('فشل التنزيل: ' + e.message, 'error');
+    }
+    $('loader').classList.add('hidden');
 }
 
 
