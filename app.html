@@ -360,7 +360,8 @@ function buildNav() {
         if (isMasterAdmin) {
             links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
             links += `<li onclick="nav('admin_companies_manager')">${t('admin_companies_manager')}</li>`;
-            links += `<li onclick="nav('admin_users')">👥 ${t('admin_users')}</li>`;
+            links += `<li onclick="nav('admin_users')">👥 البروموترز</li>`;
+            links += `<li onclick="nav('admin_managers')">👑 المديرين</li>`;
         }
         links += `<li onclick="nav('admin_notifications')">🔔 إرسال إشعار</li>`;
     } else {
@@ -408,6 +409,12 @@ function nav(page) {
         title = t('admin_promoters');
         let roleFilter = 'promoter';
         content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')} (${t('role_promoter')})</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><input type="hidden" id="nuRole" value="${roleFilter}"><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Users')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        setTimeout(() => loadAdminUsers(roleFilter), 100);
+    }
+    else if (page === 'admin_managers') {
+        title = 'إدارة المديرين';
+        let roleFilter = 'sub-admin';
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">إضافة حساب مدير جديد</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><input type="hidden" id="nuRole" value="${roleFilter}"><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>كود المدير</label><input type="text" id="nuCode" class="input-box"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">إضافة</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Users')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
         setTimeout(() => loadAdminUsers(roleFilter), 100);
     }
     else if (page === 'admin_products') {
