@@ -1317,3 +1317,16 @@ async function addFastProduct() {
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
+async function loadNotifTargets() {
+    let sel = $('notifTarget');
+    if(!sel) return;
+    sel.innerHTML = '<option value="ALL">?????? (ALL)</option>';
+    try {
+        let snap = await db.collection('users').get();
+        snap.docs.forEach(doc => {
+            let d = doc.data();
+            sel.innerHTML += <option value=""> -  - </option>;
+        });
+    } catch(err) { console.error(err); }
+}
+
