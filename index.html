@@ -69,7 +69,9 @@ body { background-color: var(--bg1); color: var(--tx1); min-height: 100vh; overf
 .user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
 .user-profile .avatar { font-size: 2.8rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); } .user-profile .info { display: flex; flex-direction: column; }
 .badge { background: linear-gradient(135deg, var(--am), #2563eb); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; width: fit-content; margin-top: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-.nav-links { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.nav-links { list-style: none; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; }
+.nav-links::-webkit-scrollbar { width: 4px; }
+.nav-links::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 .nav-links li { padding: 14px 20px; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; font-weight: 500; color: var(--tx2); }
 .nav-links li:hover, .nav-links li.active { background: rgba(255,255,255,0.08); color: var(--tx1); border-right: 4px solid var(--am); transform: translateX(-4px); }
 .main-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 28px; width: calc(100% - 312px); overflow: hidden; }
@@ -401,7 +403,7 @@ function nav(page) {
         title = t('admin_dash');
         content = `<div class="glass-card" style="margin-bottom: 20px;"><div class="grid-3"><div class="fg"><label>من تاريخ</label><input type="date" id="dashStartDate" class="input-box"></div><div class="fg"><label>إلى تاريخ</label><input type="date" id="dashEndDate" class="input-box"></div><div class="fg" style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="loadDashboard()">تطبيق الفلتر 🔍</button></div></div></div>
         <div class="glass-card" style="margin-bottom: 20px;"><h3 style="color:var(--rd); margin-bottom:15px;">نواقص المخزون ⚠️</h3><div id="lowStockContainer" style="max-height: 200px; overflow-y: auto;"></div></div>
-        <div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
+        <div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><div style="position:relative; height:300px; width:100%;"><canvas id="companyChart"></canvas></div></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><div style="position:relative; height:300px; width:100%;"><canvas id="branchChart"></canvas></div></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
     else if (page === 'admin_users') {
