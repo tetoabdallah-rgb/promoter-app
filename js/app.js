@@ -18,8 +18,8 @@ window.onunhandledrejection = function(e) {
 let currentUser = null, userData = null, currentRole = null, currentLang = localStorage.getItem('appLang') || 'ar', editingUserUid = null, chart1 = null, chart2 = null;
 const ADMIN_EMAILS = ['tetoabdallah@gmail.com'];
 const dict = {
-    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة", search: "بحث 🔍", export_excel: "تصدير 📥", break_title: "وقت الراحة (البريك)", break_desc: "لك الحق في ساعة راحة مقسمة إلى فترتين (30 دقيقة لكل فترة).", break_1_start: "بدء راحة 1 (30د)", break_2_start: "بدء راحة 2 (30د)", break_end: "إنهاء الراحة", break_started: "بدأ وقت الراحة", break_ended: "انتهى وقت الراحة", break_completed: "مكتملة", break_already_completed: "لقد أخذت هذه الراحة مسبقاً", admin_attendance: "📅 سجل الحضور" },
-    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login", search: "Search 🔍", export_excel: "Export 📥", break_title: "Break Time", break_desc: "You have a 1-hour break divided into two halves (30 minutes each).", break_1_start: "Start Break 1 (30m)", break_2_start: "Start Break 2 (30m)", break_end: "End Break", break_started: "Break Started", break_ended: "Break Ended", break_completed: "Completed", break_already_completed: "Break already taken", admin_attendance: "📅 Attendance Log" }
+    ar: { login_title: "👤 تسجيل الدخول (السحابي)", login_subtitle: "تطبيق إدارة البروموتر والمبيعات", email_ph: "البريد الإلكتروني", pass_ph: "كلمة المرور", login_btn: "دخول", logout: "خروج 🚪", admin_dash: "📊 لوحة التحكم", admin_sales: "💰 كل المبيعات", admin_users: "👥 البروموترز", admin_products: "📦 المنتجات", admin_companies: "🏢 الشركات والمخزون", admin_companies_manager: "🏢 إدارة الشركات الشاملة", admin_promoters: "👥 البروموترز", admin_admins: "👑 المديرين", prm_dash: "🏠 الرئيسية", prm_sales: "➕ مبيعات", prm_att: "⏱️ الحضور", sale_code: "كود الصنف", sale_price: "السعر", sale_date: "التاريخ", sale_desc: "الوصف", company: "الشركة", branch: "الفرع", promoter: "البروموتر", delete: "حذف", add_new_account: "إضافة حساب جديد", email: "البريد", password: "كلمة المرور", role: "الصلاحية", role_promoter: "بروموتر", role_admin: "مدير", promoter_code: "كود البروموتر", target_monthly: "التارجت (شهري)", commission_rate: "نسبة العمولة (%)", add_btn: "إضافة ➕", cancel_btn: "إلغاء ✖️", edit_account_title: "تعديل بيانات الحساب", save_btn: "حفظ 💾", confirm_delete: "هل أنت متأكد من الحذف؟", upload_excel_title: "رفع المنتجات (Excel)", excel_file: "ملف إكسيل (.xlsx)", upload_btn: "رفع 📤", fill_fields: "يرجى تعبئة الحقول", upload_success: "تم رفع وحفظ البيانات بنجاح!", sale_photo: "صورة الفاتورة (اختياري)", save_sales: "حفظ المبيعات 💾", save_success: "تم الحفظ بنجاح!", share_wa: "مشاركة الفاتورة عبر واتساب 💬", recent_sales: "مبيعاتي الأخيرة", att_title: "تسجيل الحضور اليومي", att_desc: "سيطلب التطبيق إذن الموقع (GPS) لتوثيق حضورك في الفرع.", shift_1: "الفترة الأولى", shift_2: "الفترة الثانية", sales_by_company: "المبيعات حسب الشركة", sales_by_branch: "المبيعات حسب الفرع", top_products: "أكثر المنتجات مبيعاً", upload_stock_title: "رفع مخزون الشركة (Excel)", stock_qty: "الكمية", action: "إجراء", login_tab_promoter: "👤 دخول البروموتر", login_tab_admin: "👑 دخول الإدارة", search: "بحث 🔍", export_excel: "تصدير 📥", break_title: "وقت الراحة (البريك)", break_desc: "لك الحق في ساعة راحة مقسمة إلى فترتين (30 دقيقة لكل فترة).", break_1_start: "بدء راحة 1 (30د)", break_2_start: "بدء راحة 2 (30د)", break_end: "إنهاء الراحة", break_started: "بدأ وقت الراحة", break_ended: "انتهى وقت الراحة", break_completed: "مكتملة", break_already_completed: "لقد أخذت هذه الراحة مسبقاً", admin_attendance: "📅 سجل الحضور" },
+    en: { login_title: "👤 Login (Cloud)", login_subtitle: "Promoter & Sales Management", email_ph: "Email Address", pass_ph: "Password", login_btn: "Login", logout: "Logout 🚪", admin_dash: "📊 Dashboard", admin_sales: "💰 All Sales", admin_users: "👥 Promoters", admin_products: "📦 Products", admin_companies: "🏢 Companies & Stock", admin_companies_manager: "🏢 Comprehensive Companies Manager", admin_promoters: "👥 Promoters", admin_admins: "👑 Admins", prm_dash: "🏠 Home", prm_sales: "➕ Add Sales", prm_att: "⏱️ Attendance", sale_code: "Item Code", sale_price: "Price", sale_date: "Date", sale_desc: "Description", company: "Company", branch: "Branch", promoter: "Promoter", delete: "Delete", add_new_account: "Add New Account", email: "Email", password: "Password", role: "Role", role_promoter: "Promoter", role_admin: "Admin", promoter_code: "Promoter Code", target_monthly: "Monthly Target", commission_rate: "Commission Rate (%)", add_btn: "Add ➕", cancel_btn: "Cancel ✖️", edit_account_title: "Edit Account", save_btn: "Save 💾", confirm_delete: "Are you sure to delete?", upload_excel_title: "Upload Products (Excel)", excel_file: "Excel File (.xlsx)", upload_btn: "Upload 📤", fill_fields: "Please fill all fields", upload_success: "Uploaded and saved successfully!", sale_photo: "Invoice Photo (Optional)", save_sales: "Save Sales 💾", save_success: "Saved Successfully!", share_wa: "Share via WhatsApp 💬", recent_sales: "My Recent Sales", att_title: "Daily Attendance Registration", att_desc: "The app will request GPS permission to verify your branch attendance.", shift_1: "First Shift", shift_2: "Second Shift", sales_by_company: "Sales by Company", sales_by_branch: "Sales by Branch", top_products: "Top Selling Products", upload_stock_title: "Upload Company Stock (Excel)", stock_qty: "Quantity", action: "Action", login_tab_promoter: "👤 Promoter Login", login_tab_admin: "👑 Admin Login", search: "Search 🔍", export_excel: "Export 📥", break_title: "Break Time", break_desc: "You have a 1-hour break divided into two halves (30 minutes each).", break_1_start: "Start Break 1 (30m)", break_2_start: "Start Break 2 (30m)", break_end: "End Break", break_started: "Break Started", break_ended: "Break Ended", break_completed: "Completed", break_already_completed: "Break already taken", admin_attendance: "📅 Attendance Log" }
 };
 
 function t(key) { return dict[currentLang][key] || key; }
@@ -77,6 +77,51 @@ async function checkAuth() {
     $('loader').classList.add('hidden');
 }
 
+function toggleNotifPanel() {
+    let p = $('notifPanel');
+    if (p.style.display === 'none') {
+        p.style.display = 'flex';
+        // Mark as read (hide badge)
+        $('notifBadge').style.display = 'none';
+        $('notifBadge').innerText = '0';
+    } else {
+        p.style.display = 'none';
+    }
+}
+
+let notifUnsubscribe = null;
+function startNotificationsListener() {
+    if(notifUnsubscribe) notifUnsubscribe();
+    if(currentRole !== 'promoter') return;
+    $('notifBell').style.display = 'block';
+    
+    notifUnsubscribe = db.collection('notifications')
+        .where('targetUid', 'in', ['ALL', currentUser.uid])
+        .orderBy('timestamp', 'desc')
+        .limit(20)
+        .onSnapshot(snap => {
+            let list = $('notifList');
+            if(!list) return;
+            list.innerHTML = '';
+            let unread = 0;
+            if(snap.empty) {
+                list.innerHTML = '<div style="color:gray;">لا توجد إشعارات</div>';
+                return;
+            }
+            snap.docs.forEach(doc => {
+                let d = doc.data();
+                // We don't have read receipts per user for 'ALL' messages, but for simplicity we just show a red dot if new messages arrived in this session
+                let dateStr = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString() : 'الآن';
+                list.innerHTML += `<div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:5px;"><strong style="color:var(--am);">${d.title}</strong><br><span style="color:#ddd;">${d.message}</span><div style="font-size:0.7rem; color:gray; margin-top:3px;">${dateStr}</div></div>`;
+                unread++;
+            });
+            if(unread > 0 && $('notifPanel').style.display === 'none') {
+                $('notifBadge').style.display = 'block';
+                $('notifBadge').innerText = unread;
+            }
+        });
+}
+
 let loginMode = 'promoter';
 function switchLogin(mode) {
     loginMode = mode;
@@ -112,6 +157,7 @@ async function login() {
             if (loginMode === 'promoter' && isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'يرجى الدخول من تبويب الإدارة.'; $('authError').style.display = 'block'; return; }
             localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
             $('authError').style.display = 'none'; checkAuth();
+            if(currentRole === 'promoter') startNotificationsListener();
         } else {
             $('loader').classList.add('hidden'); $('authError').innerText = 'البيانات غير صحيحة.'; $('authError').style.display = 'block';
         }
@@ -133,22 +179,27 @@ async function registerAdmin() {
             toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
         }
     } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.add('hidden');
+    $('loader').classList.remove('hidden');
 }
 function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 
 function buildNav() {
     let links = '';
     if (currentRole === 'admin') {
-        links += `<li onclick="nav('admin_dash')">${t('admin_dash')}</li>`;
-        links += `<li onclick="nav('admin_sales')">${t('admin_sales')}</li>`;
-        links += `<li onclick="nav('admin_users')">${t('admin_users')}</li>`;
+        links += `<li onclick="nav('admin_dash')">📊 ${t('admin_dash')}</li>`;
+        links += `<li onclick="nav('admin_sales')">💰 ${t('admin_sales')}</li>`;
         links += `<li onclick="nav('admin_attendance')">${t('admin_attendance')}</li>`;
         links += `<li onclick="nav('admin_products')">${t('admin_products')}</li>`;
-        links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
+        
+        let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
+        if (isMasterAdmin) {
+            links += `<li onclick="nav('admin_companies')">${t('admin_companies')}</li>`;
+            links += `<li onclick="nav('admin_companies_manager')">${t('admin_companies_manager')}</li>`;
+            links += `<li onclick="nav('admin_users')">👥 ${t('admin_users')}</li>`;
+        }
+        links += `<li onclick="nav('admin_notifications')">🔔 إرسال إشعار</li>`;
     } else {
-        links += `<li onclick="nav('promoter_dash')">${t('prm_dash')}</li>`;
-        links += `<li onclick="nav('promoter_sales')">${t('prm_sales')}</li>`;
+        links += `<li onclick="nav('promoter_sales')">🛒 ${t('prm_sales')}</li>`;
         links += `<li onclick="nav('promoter_attendance')">${t('prm_att')}</li>`;
     }
     $('navLinks').innerHTML = links;
@@ -177,18 +228,22 @@ function nav(page) {
     }
     else if (page === 'admin_sales') {
         title = t('admin_sales');
-        content = `<div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allSalesTable"></table></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><div class="grid-3"><div class="fg"><label>من تاريخ</label><input type="date" id="salesStartDate" class="input-box"></div><div class="fg"><label>إلى تاريخ</label><input type="date" id="salesEndDate" class="input-box"></div><div class="fg" style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="loadAllSales()">تطبيق الفلتر 🔍</button></div></div></div><div class="search-bar"><input type="text" id="s_allSales" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allSales', 'allSalesTable')"><button class="btn export-btn" onclick="exportTableToExcel('allSalesTable', 'Sales')">${t('export_excel')}</button><button class="btn btn-danger" style="margin-right:10px; padding:8px 15px;" onclick="exportSalesToPDF()">تصدير PDF 📄</button></div><div class="glass-card" style="overflow-x:auto;" id="salesTableContainer"><table id="allSalesTable"></table></div>`;
         setTimeout(loadAllSales, 100);
     }
     else if (page === 'admin_dash') {
         title = t('admin_dash');
-        content = `<div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><div class="grid-3"><div class="fg"><label>من تاريخ</label><input type="date" id="dashStartDate" class="input-box"></div><div class="fg"><label>إلى تاريخ</label><input type="date" id="dashEndDate" class="input-box"></div><div class="fg" style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="loadDashboard()">تطبيق الفلتر 🔍</button></div></div></div>
+        <div class="glass-card" style="margin-bottom: 20px;"><h3 style="color:var(--rd); margin-bottom:15px;">نواقص المخزون ⚠️</h3><div id="lowStockContainer" style="max-height: 200px; overflow-y: auto;"></div></div>
+        <div class="grid-2"><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_company')}</h4><canvas id="companyChart"></canvas></div><div class="glass-card"><h4 style="text-align:center; margin-bottom:10px;">${t('sales_by_branch')}</h4><canvas id="branchChart"></canvas></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">🏆 أبطال المبيعات (أفضل 3 بروموترز)</h3><div id="leaderboardContainer" class="grid-3" style="gap:15px;"></div></div><div class="glass-card" style="margin-top: 20px;"><h3 style="margin-bottom:15px;">${t('top_products')}</h3><div id="topProductsContainer" class="grid-3"></div></div>`;
         setTimeout(loadDashboard, 100);
     }
     else if (page === 'admin_users') {
-        title = t('admin_users');
-        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')}</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><div class="fg"><label>${t('role')}</label><select id="nuRole" class="input-box"><option value="promoter">${t('role_promoter')}</option><option value="admin">${t('role_admin')}</option></select></div><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Promoters')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
-        setTimeout(loadAdminUsers, 100);
+        let isPromoter = true;
+        title = t('admin_promoters');
+        let roleFilter = 'promoter';
+        content = `<div class="glass-card" style="margin-bottom: 20px;"><h3 id="formUserTitle">${t('add_new_account')} (${t('role_promoter')})</h3><div class="grid-3" style="margin-top:15px;"><div class="fg"><label>${t('email')}</label><input type="email" id="nuEmail" class="input-box"></div><div class="fg"><label>${t('password')}</label><input type="text" id="nuPass" class="input-box"></div><input type="hidden" id="nuRole" value="${roleFilter}"><div class="fg"><label>${t('company')}</label><input type="text" id="nuCompany" class="input-box"></div><div class="fg"><label>${t('branch')}</label><input type="text" id="nuBranch" class="input-box"></div><div class="fg"><label>${t('promoter_code')}</label><input type="text" id="nuCode" class="input-box"></div><div class="fg"><label>${t('target_monthly')}</label><input type="number" id="nuTarget" class="input-box" placeholder="0"></div><div class="fg"><label>${t('commission_rate')}</label><input type="number" id="nuCommission" class="input-box" placeholder="0"></div><div class="fg" style="display:flex; flex-direction:row; gap:10px; align-items:flex-end;"><button id="btnUserAction" class="btn btn-primary" onclick="adminAddUser()">${t('add_btn')}</button><button id="btnUserCancel" class="btn btn-danger hidden" onclick="cancelEditUser()">${t('cancel_btn')}</button></div></div></div><div class="search-bar"><input type="text" id="s_usersTable" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_usersTable', 'usersTable')"><button class="btn export-btn" onclick="exportTableToExcel('usersTable', 'Users')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="usersTable"></table></div>`;
+        setTimeout(() => loadAdminUsers(roleFilter), 100);
     }
     else if (page === 'admin_products') {
         title = t('admin_products');
@@ -204,6 +259,71 @@ function nav(page) {
         title = t('admin_attendance');
         content = `<div class="search-bar"><input type="text" id="s_allAtt" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allAtt', 'allAttTable')"><button class="btn export-btn" onclick="exportTableToExcel('allAttTable', 'Attendance')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allAttTable"></table></div>`;
         setTimeout(loadAllAttendance, 100);
+    }
+    else if (page === 'admin_notifications') {
+        title = 'إرسال الإشعارات';
+        content = `<div class="glass-card"><h3>إرسال إشعار جديد للمندوبين</h3>
+        <div class="grid-2">
+            <div class="fg"><label>العنوان</label><input type="text" id="notifTitle" class="input-box" placeholder="مثال: تحديث التارجت"></div>
+            <div class="fg"><label>المستهدف</label><select id="notifTarget" class="input-box"><option value="ALL">الجميع (ALL)</option></select></div>
+        </div>
+        <div class="fg"><label>الرسالة</label><textarea id="notifMsg" class="input-box" rows="3" placeholder="محتوى الإشعار..."></textarea></div>
+        <button class="btn btn-primary" onclick="sendNotification()">إرسال 🚀</button>
+        </div>`;
+        setTimeout(loadNotifTargets, 100);
+    }
+    else if (page === 'admin_companies_manager') {
+        title = t('admin_companies_manager');
+        content = `<div class="glass-card" style="margin-bottom: 20px;">
+            <h3>إضافة شركة جديدة</h3>
+            <div class="grid-2" style="margin-top:10px;">
+                <div class="fg"><label>اسم الشركة</label><input type="text" id="newCmpName" class="input-box"></div>
+                <div class="fg" style="display:flex; align-items:flex-end;"><button class="btn btn-primary" onclick="addCompanyToSystem()">إضافة الشركة</button></div>
+            </div>
+        </div>
+        <div class="glass-card">
+            <h3>الشركات</h3>
+            <div id="cmpList" class="grid-3"></div>
+        </div>
+        <div id="cmpDetailsModal" class="glass-card hidden" style="margin-top:20px; border:2px solid var(--am);">
+            <h3 id="cmpDetailsTitle" style="color:var(--am); margin-bottom:15px;"></h3>
+            <div class="grid-2">
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                    <h4>إضافة فرع</h4>
+                    <input type="text" id="newBrnName" class="input-box" style="margin:10px 0;">
+                    <button class="btn btn-success" onclick="addBranchToSystem()">حفظ الفرع</button>
+                    <ul id="cmpBranchesList" style="margin-top:10px; color:var(--tx2);"></ul>
+                </div>
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                    <h4>البروموترز التابعين للشركة</h4>
+                    <ul id="cmpPromotersList" style="margin-top:10px; color:var(--tx2); list-style:none;"></ul>
+                </div>
+                <div style="grid-column: 1 / -1; background:rgba(255,255,255,0.05); padding:15px; border-radius:8px;">
+                    <h4>رفع مخزون الشركة (إكسيل)</h4>
+                    <div class="grid-2" style="margin-top:10px;">
+                        <input type="file" id="cmpStockFile" class="input-box" accept=".xlsx">
+                        <button class="btn btn-primary" onclick="uploadCmpStockExcel()">رفع المخزون 📤</button>
+                    </div>
+                </div>
+                <div style="grid-column: 1 / -1; background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-top:15px;">
+                    <h4>منتجات ومخزون الشركة</h4>
+                    <div style="overflow-x:auto; margin-top:10px;">
+                        <table id="cmpStockTable"></table>
+                    </div>
+                </div>
+                <div style="grid-column: 1 / -1; background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-top:15px;">
+                    <h4>منتجات الشركة (إضافة سريعة يدوية)</h4>
+                    <div class="grid-3" style="margin-top:10px;">
+                        <input type="text" id="newPrdCode" class="input-box" placeholder="كود الصنف">
+                        <input type="text" id="newPrdDesc" class="input-box" placeholder="الوصف">
+                        <input type="number" id="newPrdPrice" class="input-box" placeholder="السعر">
+                        <input type="number" id="newPrdStock" class="input-box" placeholder="المخزون المتوفر">
+                        <button class="btn btn-primary" style="grid-column: 1 / -1;" onclick="addFastProduct()">إضافة المنتج</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        setTimeout(loadCompaniesManagerUI, 100);
     }
     $('pageTitle').innerText = title; $('pageContent').innerHTML = content;
 }
@@ -226,12 +346,12 @@ let cachedProducts = [];
 async function initPromoterSales() {
     $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('products').where('company', '==', userData.company).where('adminId', '==', userData.adminId || currentUser.uid).get();
+        let snap = await db.collection('products').where('adminId', '==', userData.adminId || currentUser.uid).get();
         cachedProducts = snap.docs.map(d => ({id: d.id, ...d.data()}));
         let select = $('sCode');
         if(select) {
             select.innerHTML = `<option value="">اختر الصنف</option>`;
-            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description}</option>`; });
+            cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description} (${p.company || 'بدون شركة'})</option>`; });
         }
         loadMySales();
     } catch(err) { $('loader').classList.add('hidden'); }
@@ -324,11 +444,13 @@ async function loadMySales() {
     tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
         let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
+        let htmlAcc = "";
         snap.docs.forEach(doc => {
             let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
             let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
-            tb.innerHTML += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
+            htmlAcc += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
+        tb.innerHTML += htmlAcc;
     } catch(err) {}
     $('loader').classList.add('hidden');
 }
@@ -488,35 +610,100 @@ async function loadMyAttendance() {
     try {
         let snap = await db.collection('attendance').where('uid', '==', currentUser.uid).orderBy('date', 'desc').limit(10).get();
         let today = new Date().toISOString().split('T')[0];
+        let htmlAcc = "";
         snap.docs.forEach(doc => {
             let d = doc.data();
             let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
-            tb.innerHTML += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            htmlAcc += `<tr><td>${d.date}</td><td>${d.slot1?'✅':'❌'}</td><td>${d.slot2?'✅':'❌'}</td><td>B1:${b1} B2:${b2}</td></tr>`;
             if (d.date === today && $('btnBreak1')) {
                 setupBreakUI(1, d.break1);
                 setupBreakUI(2, d.break2);
             }
         });
+        tb.innerHTML += htmlAcc;
     } catch(err) {}
 }
 
 async function loadAllSales() {
     let tb = $('allSalesTable'); if(!tb) return;
     tb.innerHTML = `<tr><th>الشركة/الفرع</th><th>البروموتر</th><th>المنتج</th><th>السعر</th><th>التاريخ</th><th>صورة</th></tr>`;
+    
+    let sd = $('salesStartDate') ? $('salesStartDate').value : '';
+    let ed = $('salesEndDate') ? $('salesEndDate').value : '';
+    
+    $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('sales').orderBy('timestamp', 'desc').limit(50).get();
+        let query = db.collection('sales').orderBy('timestamp', 'desc');
+        if (sd) { let start = new Date(sd); start.setHours(0,0,0,0); query = query.where('timestamp', '>=', start); }
+        if (ed) { let end = new Date(ed); end.setHours(23,59,59,999); query = query.where('timestamp', '<=', end); }
+        query = query.limit(200);
+        
+        let snap = await query.get();
+        let htmlAcc = "";
+        let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
         snap.docs.forEach(doc => {
-            let d = doc.data(), img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
-            tb.innerHTML += `<tr><td>${d.company} / ${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td>${img}</td></tr>`;
+            let d = doc.data();
+            if (!isMasterAdmin && d.company !== userData.company) return;
+            let img = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank">رابط</a>` : '-';
+            htmlAcc += `<tr><td>${d.company} / ${d.branch}</td><td>${d.promoterCode}</td><td>${d.itemCode}</td><td>${d.price}</td><td>${d.date}</td><td data-exclude="true">${img}</td></tr>`;
         });
-    } catch(err) {}
+        tb.innerHTML += htmlAcc;
+    } catch(err) { console.log(err); }
+    $('loader').classList.add('hidden');
+}
+
+async function exportSalesToPDF() {
+    $('loader').classList.remove('hidden');
+    let element = document.getElementById('salesTableContainer').cloneNode(true);
+    let trs = element.querySelectorAll("tr");
+    trs.forEach(tr => {
+        let tds = tr.querySelectorAll("td[data-exclude='true'], th[data-exclude='true']");
+        tds.forEach(td => td.remove());
+        if(tr.children.length > 5) {
+            tr.children[5].remove();
+        }
+    });
+    
+    let opt = {
+      margin:       1,
+      filename:     'Sales_Report.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+    };
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+        $('loader').classList.add('hidden');
+    });
 }
 
 async function loadDashboard() {
     let compObj = {}, brObj = {}, prodObj = {}, promoterObj = {};
+    let sd = $('dashStartDate') ? $('dashStartDate').value : '';
+    let ed = $('dashEndDate') ? $('dashEndDate').value : '';
+
+    $('loader').classList.remove('hidden');
     try {
-        let snap = await db.collection('sales').limit(200).get(); 
+        // Low Stock
+        let lsCont = $('lowStockContainer');
+        if(lsCont) {
+            lsCont.innerHTML = '';
+            let stockSnap = await db.collection('company_stock').where('quantity', '<=', 5).limit(20).get();
+            let lsHtml = "";
+            stockSnap.docs.forEach(doc => {
+                let s = doc.data();
+                lsHtml += `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between;"><span>${s.company} - ${s.name} (${s.code})</span> <strong style="color:var(--rd);">${s.quantity} قطع</strong></div>`;
+            });
+            lsCont.innerHTML = lsHtml || '<div style="padding:10px; color:var(--gn);">المخزون ممتاز، لا يوجد نواقص.</div>';
+        }
+
+        // Sales data
+        let query = db.collection('sales').orderBy('timestamp', 'desc');
+        if (sd) { let start = new Date(sd); start.setHours(0,0,0,0); query = query.where('timestamp', '>=', start); }
+        if (ed) { let end = new Date(ed); end.setHours(23,59,59,999); query = query.where('timestamp', '<=', end); }
+        let snap = await query.limit(500).get(); 
+
         snap.docs.forEach(doc => {
             let d = doc.data();
             compObj[d.company] = (compObj[d.company] || 0) + d.price; brObj[d.branch] = (brObj[d.branch] || 0) + d.price;
@@ -534,13 +721,25 @@ async function loadDashboard() {
             lbCont.innerHTML = '';
             let topPromoters = Object.entries(promoterObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
             let medals = ['🥇', '🥈', '🥉'];
+            
+            // Get targets
+            let usersSnap = await db.collection('users').where('role', '==', 'promoter').get();
+            let targets = {}; usersSnap.docs.forEach(d => targets[d.data().promoterCode] = d.data().target || 0);
+
+            let htmlAcc = "";
             topPromoters.forEach((p, i) => {
-                lbCont.innerHTML += `<div style="background:rgba(16,185,129,0.1); border:1px solid var(--gn); padding:15px; border-radius:8px; text-align:center;">
+                let target = targets[p[0]] || 0;
+                let pct = target > 0 ? Math.min((p[1]/target)*100, 100) : 0;
+                let pctStr = pct.toFixed(1) + '%';
+                htmlAcc += `<div style="background:rgba(16,185,129,0.1); border:1px solid var(--gn); padding:15px; border-radius:8px; text-align:center;">
                     <div style="font-size:3rem; margin-bottom:10px;">${medals[i] || '🏅'}</div>
                     <h4 style="margin:0 0 5px 0;">${p[0]}</h4>
                     <strong style="color:var(--gn); font-size:1.2rem;">${p[1]}</strong>
+                    <div style="font-size:0.8rem; color:var(--tx2); margin-top:5px;">التارجت: ${target}</div>
+                    <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; margin-top:5px; overflow:hidden;"><div style="width:${pctStr}; height:100%; background:var(--gn);"></div></div>
                 </div>`;
             });
+            lbCont.innerHTML += htmlAcc;
         }
 
         let tpCont = $('topProductsContainer'); tpCont.innerHTML = '';
@@ -549,7 +748,8 @@ async function loadDashboard() {
             let prodsHtml = sortedProds.map(p => `<li style="display:flex; justify-content:space-between; font-size:0.8rem; margin-top:5px; border-bottom:1px solid rgba(255,255,255,0.05);"><span>${p[0]}</span> <strong>${p[1]}</strong></li>`).join('');
             tpCont.innerHTML += `<div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;"><h4 style="color:var(--am); margin-bottom:10px;">${c}</h4><ul style="list-style:none; padding:0;">${prodsHtml}</ul></div>`;
         }
-    } catch(err) {}
+    } catch(err) { console.log(err); }
+    $('loader').classList.add('hidden');
 }
 
 let cachedAdminUsers = [], cachedAdminAuthUsers = [];
@@ -559,36 +759,45 @@ async function adminAddUser() {
     $('loader').classList.remove('hidden');
     try {
         let snap = await db.collection('auth_users').where('email', '==', e.toLowerCase()).get();
-        if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('مسجل بالفعل', 'error'); }
+        if (!snap.empty && !editingUserUid) { $('loader').classList.add('hidden'); return toast('البريد مستخدم مسبقاً', 'error'); }
         let uid = editingUserUid || 'usr_' + Date.now();
         await db.collection('auth_users').doc(uid).set({uid: uid, email: e.toLowerCase(), password: p});
         await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: r, promoterCode: code, branch: br, company: comp, target: tgt, commissionRate: comm, adminId: currentUser.uid });
-        toast('تم الحفظ', 'success'); cancelEditUser(); loadAdminUsers();
+        toast('تم الحفظ', 'success'); cancelEditUser(); loadAdminUsers(r);
     } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
 
-async function loadAdminUsers() {
+let unsubAdminAuth = null;
+let unsubAdminUsers = null;
+async function loadAdminUsers(roleFilter) {
     let tb = $('usersTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    try {
-        db.collection('auth_users').onSnapshot(snap1 => {
-            cachedAdminAuthUsers = snap1.docs.map(d => d.data());
-            db.collection('users').onSnapshot(snap2 => {
-                cachedAdminUsers = snap2.docs.map(d => d.data());
-                if(!$('usersTable')) return;
-                $('usersTable').innerHTML = `<tr><th>${t('role')}</th><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
-                cachedAdminUsers.forEach(u => {
-                    let progressHtml = u.target > 0 ? `<div class="progress-bg"><div class="progress-bar" style="width: 50%; background: var(--am);"></div></div>` : '';
-                    $('usersTable').innerHTML += `<tr><td><span class="badge">${u.role}</span></td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0} ${progressHtml}</td><td>${u.commissionRate || 0}%</td>
-                        <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}')">✖️</button></td></tr>`;
-                });
-                $('loader').classList.add('hidden');
-            });
+    
+    if (unsubAdminAuth) unsubAdminAuth();
+    if (unsubAdminUsers) unsubAdminUsers();
+    
+    let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
+    let masterUid = userData.adminId || currentUser.uid;
+
+    unsubAdminAuth = db.collection('auth_users').onSnapshot(snap1 => {
+        cachedAdminAuthUsers = snap1.docs.map(d => d.data());
+    });
+    
+    unsubAdminUsers = db.collection('users').where('adminId', '==', masterUid).onSnapshot(snap2 => {
+        cachedAdminUsers = snap2.docs.map(d => d.data());
+        if(!$('usersTable')) return;
+        $('usersTable').innerHTML = `<tr><th>${t('role')}</th><th>${t('email')}</th><th>${t('company')}/${t('branch')}</th><th>${t('promoter_code')}</th><th>${t('target_monthly')}</th><th>${t('commission_rate')}</th><th>${t('action')}</th></tr>`;
+        let htmlAcc = "";
+        cachedAdminUsers.forEach(u => {
+            if (roleFilter && u.role !== roleFilter) return;
+            if (!isMasterAdmin && u.company !== userData.company) return;
+            htmlAcc += `<tr><td><span class="badge">${u.role}</span></td><td>${u.email}</td><td>${u.company} / ${u.branch}</td><td>${u.promoterCode}</td><td>${u.target || 0}</td><td>${u.commissionRate || 0}%</td>
+                <td><button class="btn btn-primary" style="padding:6px; font-size:12px;" onclick="editUser('${u.uid}')">✏️</button> <button class="btn btn-danger" style="padding:6px; font-size:12px;" onclick="deleteUser('${u.uid}', '${roleFilter}')">❌</button></td></tr>`;
         });
-    } catch(err) {
+        $('usersTable').innerHTML += htmlAcc;
         $('loader').classList.add('hidden');
-    }
+    });
 }
 
 function editUser(uid) {
@@ -601,9 +810,9 @@ function editUser(uid) {
 function cancelEditUser() {
     editingUserUid = null; $('nuEmail').value = ''; $('nuPass').value = ''; $('nuCompany').value = ''; $('nuBranch').value = ''; $('nuCode').value = ''; $('nuTarget').value = ''; $('nuCommission').value = ''; $('btnUserAction').innerText = 'إضافة ➕'; $('btnUserCancel').classList.add('hidden');
 }
-async function deleteUser(uid) {
+async function deleteUser(uid, roleFilter) {
     if(!confirm('حذف؟')) return;
-    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers();
+    await db.collection('auth_users').doc(uid).delete(); await db.collection('users').doc(uid).delete(); loadAdminUsers(roleFilter);
 }
 
 async function uploadProductsExcel() {
@@ -618,7 +827,6 @@ async function uploadProductsExcel() {
             let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
             if(json.length < 2) throw new Error("الملف فارغ");
             
-            // Detect format: Exported format has 4+ columns and first column is usually 'الشركة'
             let isExportFormat = (json[0] && json[0].length >= 4 && (String(json[0][0]).includes('شركة') || String(json[0][0]).includes('Company')));
             
             if(!compInput && !isExportFormat) {
@@ -665,16 +873,20 @@ async function uploadProductsExcel() {
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
+let unsubAdminProducts = null;
 async function loadAdminProducts() {
     let tb = $('productsTable'); if(!tb) return;
     $('loader').classList.remove('hidden');
-    db.collection('products').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
-        if(!$('productsTable')) return;
-        $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('action')}</th></tr>`;
-        snap.forEach(doc => {
-            let p = doc.data(); 
-            $('productsTable').innerHTML += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">✖️</button></td></tr>`;
+    let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
+    if(unsubAdminProducts) unsubAdminProducts();
+    unsubAdminProducts = db.collection('products').where('adminId', '==', userData.adminId || currentUser.uid).limit(100).onSnapshot(snap => {
+        let htmlAcc = "";
+        snap.docs.forEach(doc => {
+            let p = doc.data();
+            if (!isMasterAdmin && p.company !== userData.company) return;
+            htmlAcc += `<tr><td>${p.company}</td><td>${p.itemCode}</td><td>${p.description}</td><td>${p.price}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="db.collection('products').doc('${doc.id}').delete()">❌</button></td></tr>`;
         });
+        $('productsTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>${t('sale_desc')}</th><th>${t('sale_price')}</th><th>${t('delete')}</th></tr>` + htmlAcc;
         $('loader').classList.add('hidden');
     }, err => { console.error('Load Error:', err); toast(err.message, 'error'); $('loader').classList.add('hidden'); });
 }
@@ -756,17 +968,21 @@ async function uploadStockExcel() {
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
+let unsubAdminStock = null;
 function loadAdminStock() {
     let tb = $('stockTable'); if(!tb) return;
+    tb.innerHTML = `<tr><th>الشركة</th><th>كود الصنف</th><th>الوصف</th><th>السعر</th><th>الكمية</th><th>حذف</th></tr>`;
     $('loader').classList.remove('hidden');
-    db.collection('company_stock').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
-        if(!$('stockTable')) return;
-        $('stockTable').innerHTML = `<tr><th>${t('company')}</th><th>${t('sale_code')}</th><th>الاسم / الوصف</th><th>السعر</th><th>${t('stock_qty')}</th><th>${t('action')}</th></tr>`;
-        snap.forEach(doc => {
-            let d = doc.data();
-            $('stockTable').innerHTML += `<tr><td>${d.company}</td><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td>${d.quantity}</td>
-                <td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStock('${doc.id}')">✖️</button></td></tr>`;
+    let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
+    if(unsubAdminStock) unsubAdminStock();
+    unsubAdminStock = db.collection('company_stock').where('adminId', '==', userData.adminId || currentUser.uid).limit(100).onSnapshot(snap => {
+        let htmlAcc = "";
+        snap.docs.forEach(doc => {
+            let p = doc.data();
+            if (!isMasterAdmin && p.company !== userData.company) return;
+            htmlAcc += `<tr><td>${p.company}</td><td>${p.code}</td><td>${p.name}</td><td>${p.price}</td><td>${p.quantity}</td><td><button class="btn btn-danger" style="padding:4px;" onclick="deleteStockItem('${doc.id}')">❌</button></td></tr>`;
         });
+        $('stockTable').innerHTML += htmlAcc;
         $('loader').classList.add('hidden');
     }, err => { $('loader').classList.add('hidden'); });
 }
@@ -788,7 +1004,7 @@ async function deleteAllStock() {
     $('loader').classList.add('hidden');
 }
 
-async function deleteStock(id) {
+async function deleteStockItem(id) {
     if(!confirm(t('confirm_delete'))) return;
     await db.collection('company_stock').doc(id).delete();
 }
@@ -799,22 +1015,31 @@ async function loadAllAttendance() {
     $('loader').classList.remove('hidden');
     try {
         if (!cachedAdminUsers || cachedAdminUsers.length === 0) {
-            let uSnap = await db.collection('users').where('adminId', '==', currentUser.uid).get();
+            let uSnap = await db.collection('users').where('adminId', '==', userData.adminId || currentUser.uid).get();
             cachedAdminUsers = uSnap.docs.map(d => d.data());
         }
         let snap = await db.collection('attendance').orderBy('date', 'desc').limit(100).get();
+        let htmlAcc = "";
+        let isMasterAdmin = (!userData.adminId || userData.adminId === currentUser.uid);
         snap.docs.forEach(doc => {
             let d = doc.data();
+            let user = cachedAdminUsers.find(u => u.uid === d.uid);
+            
+            // Ignore attendance from users not managed by this admin group
+            if (user && user.adminId !== (userData.adminId || currentUser.uid)) return;
+            
+            if (!isMasterAdmin && (!user || user.company !== userData.company)) return;
+            
             let b1 = d.break1 ? (d.break1.end ? '✅' : '⏳') : '❌';
             let b2 = d.break2 ? (d.break2.end ? '✅' : '⏳') : '❌';
-            let user = cachedAdminUsers.find(u => u.uid === d.uid);
             let promoterName = user ? (user.email.split('@')[0] + ' (' + user.promoterCode + ')') : d.uid.substring(0,8);
-            let loc1Link = d.loc1 ? `<a href="https://maps.google.com/?q=${d.loc1}" target="_blank" style="text-decoration:none;">📍</a>` : '';
-            let loc2Link = d.loc2 ? `<a href="https://maps.google.com/?q=${d.loc2}" target="_blank" style="text-decoration:none;">📍</a>` : '';
-            let pic1Link = d.photo1 ? `<a href="#" onclick="window.open('${d.photo1}', '_blank')" style="text-decoration:none;">📷</a>` : '';
-            let pic2Link = d.photo2 ? `<a href="#" onclick="window.open('${d.photo2}', '_blank')" style="text-decoration:none;">📷</a>` : '';
-            tb.innerHTML += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'✅':'❌'} ${loc1Link} ${pic1Link}</td><td>${d.slot2?'✅':'❌'} ${loc2Link} ${pic2Link}</td><td>B1:${b1} B2:${b2}</td></tr>`;
+            let loc1Link = d.loc1 ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:12px; border-radius:4px;" onclick="window.open('https://maps.google.com/?q=${d.loc1}', '_blank')">خريطة 📍</button>` : '';
+            let loc2Link = d.loc2 ? `<button class="btn btn-primary" style="padding:4px 8px; font-size:12px; border-radius:4px;" onclick="window.open('https://maps.google.com/?q=${d.loc2}', '_blank')">خريطة 📍</button>` : '';
+            let pic1Link = d.photo1 ? `<button class="btn btn-success" style="padding:4px 8px; font-size:12px; border-radius:4px; margin-right:5px;" onclick="window.open('${d.photo1}', '_blank')">صورة 📷</button>` : '';
+            let pic2Link = d.photo2 ? `<button class="btn btn-success" style="padding:4px 8px; font-size:12px; border-radius:4px; margin-right:5px;" onclick="window.open('${d.photo2}', '_blank')">صورة 📷</button>` : '';
+            htmlAcc += `<tr><td>${promoterName}</td><td>${d.date}</td><td>${d.slot1?'✅':'❌'} <div style="margin-top:5px;">${loc1Link} ${pic1Link}</div></td><td>${d.slot2?'✅':'❌'} <div style="margin-top:5px;">${loc2Link} ${pic2Link}</div></td><td>B1:${b1} B2:${b2}</td></tr>`;
         });
+        tb.innerHTML += htmlAcc;
     } catch(err) {}
     $('loader').classList.add('hidden');
 }
@@ -895,5 +1120,193 @@ async function syncOfflineData() {
         checkOfflineQueue();
         setTimeout(() => window.location.reload(), 1000);
     } catch(err) { toast('فشلت المزامنة: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+let currentSelectedCompany = { id: null, name: null };
+
+async function addCompanyToSystem() {
+    let name = $('newCmpName').value.trim();
+    if (!name) return toast('يرجى كتابة اسم الشركة', 'error');
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('companies_list').where('name', '==', name).where('adminId', '==', currentUser.uid).get();
+        if (!snap.empty) {
+            toast('الشركة موجودة بالفعل', 'error');
+        } else {
+            await db.collection('companies_list').add({ name: name, adminId: currentUser.uid, branches: [] });
+            toast('تم إضافة الشركة بنجاح', 'success');
+            $('newCmpName').value = '';
+        }
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+let unsubCompaniesList = null;
+function loadCompaniesManagerUI() {
+    if(unsubCompaniesList) unsubCompaniesList();
+    unsubCompaniesList = db.collection('companies_list').where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+        let cont = $('cmpList');
+        if (!cont) return;
+        cont.innerHTML = '';
+        snap.forEach(doc => {
+            let d = doc.data();
+            cont.innerHTML += `<div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; cursor:pointer; text-align:center; border:1px solid rgba(255,255,255,0.1);" onclick="showCompanyDetails('${doc.id}', '${d.name}')">
+                <h4>${d.name}</h4>
+                <p style="font-size:0.8rem; color:var(--tx2);">فروع: ${d.branches ? d.branches.length : 0}</p>
+                <button class="btn btn-danger" style="margin-top:10px; padding:5px; font-size:0.8rem;" onclick="event.stopPropagation(); deleteCompanyFromSystem('${doc.id}')">حذف</button>
+            </div>`;
+        });
+    });
+}
+
+async function deleteCompanyFromSystem(id) {
+    if(!confirm('هل أنت متأكد من حذف الشركة؟')) return;
+    $('loader').classList.remove('hidden');
+    await db.collection('companies_list').doc(id).delete();
+    if (currentSelectedCompany.id === id) $('cmpDetailsModal').classList.add('hidden');
+    $('loader').classList.add('hidden');
+    toast('تم الحذف', 'success');
+}
+
+let unsubManageCompanyDoc = null;
+let unsubManageCompanyPromoters = null;
+let unsubManageCompanyStock = null;
+
+function showCompanyDetails(id, name) {
+    currentSelectedCompany = {id: id, name: name};
+    $('cmpDetailsTitle').innerText = 'تفاصيل الشركة: ' + name;
+    $('cmpDetailsModal').classList.remove('hidden');
+    
+    if(unsubManageCompanyDoc) unsubManageCompanyDoc();
+    unsubManageCompanyDoc = db.collection('companies_list').doc(id).onSnapshot(doc => {
+        if (!doc.exists) return;
+        let d = doc.data();
+        let blist = $('cmpBranchesList');
+        if(blist) {
+            blist.innerHTML = '';
+            (d.branches || []).forEach((b, idx) => {
+                blist.innerHTML += `<li style="margin-bottom:5px;">- ${b} <span style="color:var(--rd); cursor:pointer; margin-right:10px;" onclick="removeBranch(${idx})">✖</span></li>`;
+            });
+        }
+    });
+
+    if(unsubManageCompanyPromoters) unsubManageCompanyPromoters();
+    unsubManageCompanyPromoters = db.collection('users').where('company', '==', name).where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+        let plist = $('cmpPromotersList');
+        if(plist) {
+            plist.innerHTML = '';
+            snap.forEach(doc => {
+                let u = doc.data();
+                plist.innerHTML += `<li style="margin-bottom:5px;">👤 ${u.email.split('@')[0]} (${u.promoterCode}) - فرع: ${u.branch}</li>`;
+            });
+        }
+    });
+
+    if(unsubManageCompanyStock) unsubManageCompanyStock();
+    unsubManageCompanyStock = db.collection('company_stock').where('company', '==', name).where('adminId', '==', currentUser.uid).onSnapshot(snap => {
+        let stb = $('cmpStockTable');
+        if(stb) {
+            stb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>الكمية</th></tr>`;
+            let htmlAcc = "";
+            snap.forEach(doc => {
+                let d = doc.data();
+                htmlAcc += `<tr><td>${d.code}</td><td>${d.name}</td><td>${d.price}</td><td><strong style="color:var(--gn);">${d.quantity}</strong></td></tr>`;
+            });
+            stb.innerHTML += htmlAcc;
+        }
+    });
+}
+
+async function uploadCmpStockExcel() {
+    let compName = currentSelectedCompany.name, fileInput = $('cmpStockFile');
+    if(!compName) return toast('يرجى اختيار شركة أولاً', 'error');
+    if(!fileInput.files.length) return toast(t('fill_fields'), 'error');
+    
+    $('loader').classList.remove('hidden');
+    let reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            let data = new Uint8Array(e.target.result), workbook = XLSX.read(data, {type: 'array'});
+            let json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            if(json.length < 2) throw new Error("الملف فارغ");
+            
+            const batch = db.batch();
+            for(let i = 1; i < json.length; i++) {
+                let row = json[i];
+                if(row.length > 0) {
+                    let code = String(row[0] || '');
+                    let name = String(row[1] || '');
+                    let price = Number(row[2] || 0);
+                    let qty = Number(row[3] || 0);
+                    
+                    if(code && code !== 'undefined') {
+                        let stockRef = db.collection('company_stock').doc();
+                        batch.set(stockRef, { company: compName, code: code, name: name, price: price, quantity: qty, adminId: currentUser.uid });
+                        
+                        let prodRef = db.collection('products').doc();
+                        batch.set(prodRef, { company: compName, itemCode: code, description: name, price: price, adminId: currentUser.uid, timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+                    }
+                }
+            }
+            await batch.commit();
+            toast('تم رفع وحفظ المخزون للشركة بنجاح', 'success'); 
+            fileInput.value = '';
+        } catch(err) { console.error('Upload Error:', err); toast('Error parsing Excel: '+err.message, 'error'); }
+        $('loader').classList.add('hidden');
+    };
+    reader.readAsArrayBuffer(fileInput.files[0]);
+}
+
+async function addBranchToSystem() {
+    let bname = $('newBrnName').value.trim();
+    if (!bname || !currentSelectedCompany.id) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let docRef = db.collection('companies_list').doc(currentSelectedCompany.id);
+        await docRef.update({
+            branches: firebase.firestore.FieldValue.arrayUnion(bname)
+        });
+        $('newBrnName').value = '';
+        toast('تم إضافة الفرع', 'success');
+    } catch(err) { toast(err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function removeBranch(idx) {
+    if(!confirm('حذف الفرع؟')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let docSnap = await db.collection('companies_list').doc(currentSelectedCompany.id).get();
+        let d = docSnap.data();
+        d.branches.splice(idx, 1);
+        await db.collection('companies_list').doc(currentSelectedCompany.id).update({ branches: d.branches });
+        toast('تم الحذف', 'success');
+    } catch(err) {}
+    $('loader').classList.add('hidden');
+}
+
+async function addFastProduct() {
+    let code = $('newPrdCode').value.trim();
+    let desc = $('newPrdDesc').value.trim();
+    let price = Number($('newPrdPrice').value);
+    let stock = Number($('newPrdStock').value);
+    if (!code || !currentSelectedCompany.name) return toast('يرجى استكمال البيانات', 'error');
+    
+    $('loader').classList.remove('hidden');
+    try {
+        let batch = db.batch();
+        let prodRef = db.collection('products').doc();
+        batch.set(prodRef, {
+            adminId: currentUser.uid, company: currentSelectedCompany.name, itemCode: code, description: desc, price: price, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        let stockRef = db.collection('company_stock').doc();
+        batch.set(stockRef, {
+            company: currentSelectedCompany.name, code: code, name: desc, price: price, quantity: stock, adminId: currentUser.uid
+        });
+        await batch.commit();
+        toast('تم إضافة المنتج والمخزون بنجاح', 'success');
+        $('newPrdCode').value = ''; $('newPrdDesc').value = ''; $('newPrdPrice').value = ''; $('newPrdStock').value = '';
+    } catch(err) { toast(err.message, 'error'); }
     $('loader').classList.add('hidden');
 }
