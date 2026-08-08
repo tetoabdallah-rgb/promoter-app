@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -99,6 +99,7 @@ tr:hover { background-color: rgba(255,255,255,0.04); }
 .progress-bg { width: 100%; background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; overflow: hidden; margin-top: 8px; }
 .progress-bar { height: 100%; transition: width 0.5s ease; border-radius: 10px; }
 @media (max-width: 768px) { #app-screen { flex-direction: column; padding: 15px; } .sidebar { width: 100%; margin-bottom: 20px; } .nav-links li:hover, .nav-links li.active { transform: none; border-right: none; border-bottom: 4px solid var(--am); } }
+select option { background-color: var(--bg2); color: var(--tx1); }
     </style>
 </head>
 <body>
@@ -391,7 +392,7 @@ function nav(page) {
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = `<div class="glass-card" style="text-align:center;"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
+        content = `<div class="glass-card" style="text-align:center + '<div class="search-bar" style="margin-top:15px;"><button class="btn btn-danger" style="width:auto; padding:8px 15px;" onclick="deleteAllAttendanceApp(false)">مسح جميع البيانات 🗑️</button></div>';"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
@@ -431,7 +432,7 @@ function nav(page) {
     }
     else if (page === 'admin_attendance') {
         title = t('admin_attendance');
-        content = `<div class="search-bar"><input type="text" id="s_allAtt" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allAtt', 'allAttTable')"><button class="btn export-btn" onclick="exportTableToExcel('allAttTable', 'Attendance')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allAttTable"></table></div>`;
+        content = `<div class="search-bar"><button class="btn btn-danger" style="margin-right:10px; width:auto; padding:8px 15px;" onclick="deleteAllAttendanceApp(true)">مسح جميع البيانات 🗑️</button><input type="text" id="s_allAtt" class="input-box" placeholder="${t('search')}..." onkeyup="filterTable('s_allAtt', 'allAttTable')"><button class="btn export-btn" onclick="exportTableToExcel('allAttTable', 'Attendance')">${t('export_excel')}</button></div><div class="glass-card" style="overflow-x:auto;"><table id="allAttTable"></table></div>`;
         setTimeout(loadAllAttendance, 100);
     }
     else if (page === 'admin_notifications') {
@@ -1498,7 +1499,80 @@ async function loadNotifTargets() {
 }
 
 
-    </script>
+    
+async function deleteAllSalesApp(isAdmin) {
+    if(!confirm('هل أنت متأكد من مسح جميع بيانات المبيعات؟ لا يمكن التراجع!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let q = db.collection('sales');
+        if(isAdmin) {
+            q = q.where('adminId', '==', currentUser.uid);
+        } else {
+            q = q.where('promoterUid', '==', currentUser.uid);
+        }
+        let snap = await q.get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        toast('تم مسح المبيعات بنجاح', 'success');
+        if(isAdmin) loadAllSales(); else initPromoterSales();
+    } catch (err) { toast('خطأ: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function deleteAllUsersApp(role) {
+    if(!confirm('هل أنت متأكد من مسح جميع الحسابات (' + role + ')؟ لا يمكن التراجع!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('users').where('adminId', '==', currentUser.uid).where('role', '==', role).get();
+        const batch = db.batch();
+        snap.forEach(doc => {
+            if (doc.data().email !== 'tetoabdallah@gmail.com' && doc.data().uid !== currentUser.uid) { // Protect root and self
+                batch.delete(doc.ref);
+            }
+        });
+        await batch.commit();
+        toast('تم مسح الحسابات بنجاح', 'success');
+        loadAdminUsers(role);
+    } catch (err) { toast('خطأ: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function deleteAllAttendanceApp(isAdmin) {
+    if(!confirm('هل أنت متأكد من مسح جميع بيانات الحضور؟ لا يمكن التراجع!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let q = db.collection('attendance');
+        if(isAdmin) {
+            q = q.where('adminId', '==', currentUser.uid);
+        } else {
+            q = q.where('promoterUid', '==', currentUser.uid);
+        }
+        let snap = await q.get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        toast('تم مسح سجل الحضور بنجاح', 'success');
+        if(isAdmin) loadAllAttendance(); else loadMyAttendance();
+    } catch (err) { toast('خطأ: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+async function deleteAllCompaniesApp() {
+    if(!confirm('هل أنت متأكد من مسح جميع الشركات؟ لا يمكن التراجع!')) return;
+    $('loader').classList.remove('hidden');
+    try {
+        let snap = await db.collection('companies').where('adminId', '==', currentUser.uid).get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        toast('تم مسح الشركات بنجاح', 'success');
+        loadAdminCompaniesManager();
+    } catch (err) { toast('خطأ: ' + err.message, 'error'); }
+    $('loader').classList.add('hidden');
+}
+
+</script>
 </body>
 </html>
 
