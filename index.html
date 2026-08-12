@@ -50,17 +50,14 @@
     <button id="btnLang" onclick="toggleLang()" style="position:fixed; top:20px; left:20px; z-index:9999; background:rgba(0,0,0,0.5); color:#fff; border:1px solid rgba(255,255,255,0.2); padding:8px 15px; border-radius:20px; cursor:pointer; backdrop-filter:blur(10px);">English</button>
 
     <!-- Auth Screen -->
-    <div id="auth-screen" class="screen">
-        <div class="glass-card auth-box">
+    <div id="auth-screen" class="screen" style="background: url('./promoter_login_image.jpg') no-repeat center center / cover; position: relative;">
+        <div style="position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(11, 15, 25, 0.7); z-index: 1;"></div>
+        <div class="glass-card auth-box" style="z-index: 2;">
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
                 <button id="tabPromoter" class="btn" style="background:var(--accent-main); color:white;" onclick="switchLogin('promoter')">👤 بروموتر</button>
                 <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">👑 إدارة</button>
             </div>
             
-            <div style="text-align: center; margin-bottom: 15px;">
-                <img src="./promoter_login_image.jpg" alt="Promoter App" style="width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent-main); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); object-fit: cover;">
-            </div>
-
             <h1 id="loginTitle" style="text-align:center; font-size: 1.8rem; margin-bottom: 10px;">تسجيل الدخول</h1>
             <p id="loginSub" style="text-align:center; margin-bottom: 20px; color: var(--tx2);">تطبيق إدارة البروموتر والمبيعات السحابي</p>
             <input type="email" id="authEmail" class="input-box" placeholder="البريد الإلكتروني">
