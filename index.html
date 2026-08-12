@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <meta name="color-scheme" content="dark">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Promoter App Cloud</title>
@@ -51,7 +52,7 @@
 
     <!-- Auth Screen -->
     <div id="auth-screen" class="screen" style="background: url('./promoter_login_image.jpg') no-repeat center center / cover; position: relative;">
-        <div class="glass-card auth-box" style="z-index: 2; background: rgba(11, 15, 25, 0.2) !important; backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important; border: 1px solid rgba(255,255,255,0.15) !important;">
+        <div class="glass-card auth-box" style="z-index: 2; background: linear-gradient(135deg, rgba(11, 15, 25, 0.2), rgba(11, 15, 25, 0.1)) !important; backdrop-filter: blur(25px) !important; -webkit-backdrop-filter: blur(25px) !important; border: 1px solid rgba(255,255,255,0.15) !important;">
             <div style="display:flex; justify-content:center; gap:10px; margin-bottom:10px;">
                 <button id="tabPromoter" class="btn" style="background:var(--accent-main); color:white;" onclick="switchLogin('promoter')">👤 بروموتر</button>
                 <button id="tabAdmin" class="btn" style="background:rgba(255,255,255,0.1); color:white;" onclick="switchLogin('admin')">👑 إدارة</button>
@@ -574,7 +575,8 @@ async function loadMySales() {
 function printReceipt(code, price, date) {
     let receiptWindow = window.open('', '_blank', 'width=300,height=400');
     receiptWindow.document.write(`
-        <html><head><link rel="stylesheet" href="./style.css"></head>
+        <html><head>
+    <meta name="color-scheme" content="dark"><link rel="stylesheet" href="./style.css"></head>
         <body dir="rtl">
             <h2>Promoter Pro</h2>
             <div class="line"></div>
@@ -1515,3 +1517,4 @@ async function deleteAllCompaniesApp() {
 
 
 <!-- BUST CACHE 08/13/2026 01:41:58 -->
+
