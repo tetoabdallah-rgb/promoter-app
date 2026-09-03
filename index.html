@@ -7,21 +7,20 @@
     <title>Promoter App Cloud</title>
     <link rel="manifest" href="./manifest.json">
     
-    <!-- Kill rogue Service Worker immediately before anything else -->
+    <!-- Cleanly unregister any old Service Workers & Caches -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
-                            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                console.log('New update available. Reloading...');
-                                setTimeout(() => window.location.reload(true), 1500);
-                            }
-                        };
-                    };
-                });
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                for (let name of names) {
+                    caches.delete(name);
+                }
             });
         }
     </script>
@@ -160,6 +159,9 @@ $('btnLogin').innerText = t('login_btn'); $('btnLang').innerText = currentLang =
 checkAuth();
 
 async function checkAuth() {
+    let safetyTimeout = setTimeout(() => {
+        $('loader').classList.add('hidden');
+    }, 4000);
     try {
         let storedUser = localStorage.getItem('currentUser');
         if (storedUser) {
@@ -181,10 +183,15 @@ async function checkAuth() {
         }
     } catch(e) {
         console.error("Auth error:", e);
+        if (e && e.code === 'permission-denied') {
+            toast('تنبيه: قواعد فايربيز مغلقة (Permission Denied)! يرجى فتح الـ Rules في Firebase Console.', 'error');
+        }
         localStorage.removeItem('currentUser');
         showScreen('auth-screen');
+    } finally {
+        clearTimeout(safetyTimeout);
+        $('loader').classList.add('hidden');
     }
-    $('loader').classList.add('hidden');
 }
 
 function toggleNotifPanel() {
@@ -205,31 +212,35 @@ function startNotificationsListener() {
     if(currentRole !== 'promoter') return;
     $('notifBell').style.display = 'block';
     
-    notifUnsubscribe = db.collection('notifications')
-        .where('targetUid', 'in', ['ALL', currentUser.uid])
-        .orderBy('timestamp', 'desc')
-        .limit(20)
-        .onSnapshot(snap => {
-            let list = $('notifList');
-            if(!list) return;
-            list.innerHTML = '';
-            let unread = 0;
-            if(snap.empty) {
-                list.innerHTML = '<div style="color:gray;">لا توجد إشعارات</div>';
-                return;
-            }
-            snap.docs.forEach(doc => {
-                let d = doc.data();
-                // We don't have read receipts per user for 'ALL' messages, but for simplicity we just show a red dot if new messages arrived in this session
-                let dateStr = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString() : 'الآن';
-                list.innerHTML += `<div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:5px;"><strong style="color:var(--am);">${d.title}</strong><br><span style="color:#ddd;">${d.message}</span><div style="font-size:0.7rem; color:gray; margin-top:3px;">${dateStr}</div></div>`;
-                unread++;
+    try {
+        notifUnsubscribe = db.collection('notifications')
+            .where('targetUid', 'in', ['ALL', currentUser.uid])
+            .limit(20)
+            .onSnapshot(snap => {
+                let list = $('notifList');
+                if(!list) return;
+                list.innerHTML = '';
+                let unread = 0;
+                if(snap.empty) {
+                    list.innerHTML = '<div style="color:gray;">لا توجد إشعارات</div>';
+                    return;
+                }
+                snap.docs.forEach(doc => {
+                    let d = doc.data();
+                    let dateStr = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString() : 'الآن';
+                    list.innerHTML += `<div style="background:rgba(0,0,0,0.3); padding:8px; border-radius:5px;"><strong style="color:var(--am);">${d.title}</strong><br><span style="color:#ddd;">${d.message}</span><div style="font-size:0.7rem; color:gray; margin-top:3px;">${dateStr}</div></div>`;
+                    unread++;
+                });
+                if(unread > 0 && $('notifPanel').style.display === 'none') {
+                    $('notifBadge').style.display = 'block';
+                    $('notifBadge').innerText = unread;
+                }
+            }, err => {
+                console.warn('Notifications listener error:', err);
             });
-            if(unread > 0 && $('notifPanel').style.display === 'none') {
-                $('notifBadge').style.display = 'block';
-                $('notifBadge').innerText = unread;
-            }
-        });
+    } catch(err) {
+        console.warn('Failed to start notifications listener:', err);
+    }
 }
 
 let loginMode = 'promoter';
@@ -252,7 +263,7 @@ async function login() {
     $('loader').classList.remove('hidden');
     let timeoutId = setTimeout(() => {
         $('loader').classList.add('hidden');
-        $('authError').innerText = 'تأخر الاتصال بالسيرفر! يرجى تحديث الصفحة أو إيقاف مانع الإعلانات.';
+        $('authError').innerText = 'تأخر الاتصال بالسيرفر! يرجى التأكد من اتصال الإنترنت أو قواعد Firebase.';
         $('authError').style.display = 'block';
     }, 8000);
     try {
@@ -266,12 +277,23 @@ async function login() {
             if (loginMode === 'admin' && !isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'غير مصرح لك بالدخول للإدارة.'; $('authError').style.display = 'block'; return; }
             if (loginMode === 'promoter' && isAdmin) { $('loader').classList.add('hidden'); $('authError').innerText = 'يرجى الدخول من تبويب الإدارة.'; $('authError').style.display = 'block'; return; }
             localStorage.setItem('currentUser', JSON.stringify({uid: user.uid, email: user.email}));
-            $('authError').style.display = 'none'; checkAuth();
+            $('authError').style.display = 'none';
+            await checkAuth();
             if(currentRole === 'promoter') startNotificationsListener();
         } else {
             $('loader').classList.add('hidden'); $('authError').innerText = 'البيانات غير صحيحة.'; $('authError').style.display = 'block';
         }
-    } catch(err) { $('loader').classList.add('hidden'); toast(`خطأ: ${err.message}`, 'error'); }
+    } catch(err) {
+        clearTimeout(timeoutId);
+        $('loader').classList.add('hidden');
+        if (err && err.code === 'permission-denied') {
+            $('authError').innerText = 'قواعد البيانات مغلقة (Firebase Rules Expired). يرجى فتح الصلاحيات في Firebase Console.';
+            $('authError').style.display = 'block';
+            toast('Firebase Permission Denied! يرجى تحديث Security Rules في Firebase Console.', 'error');
+        } else {
+            toast(`خطأ: ${err.message}`, 'error');
+        }
+    }
 }
 
 async function registerAdmin() {
@@ -288,8 +310,11 @@ async function registerAdmin() {
             await db.collection('users').doc(uid).set({ uid: uid, email: e.toLowerCase(), role: 'admin', promoterCode: 'ADMIN-'+Math.floor(Math.random()*1000), branch: 'Main', company: 'Main', adminId: uid });
             toast('تم إنشاء الحساب بنجاح! يمكنك الدخول الآن.', 'success');
         }
-    } catch(err) { toast(err.message, 'error'); }
-    $('loader').classList.remove('hidden');
+    } catch(err) {
+        toast(err.message, 'error');
+    } finally {
+        $('loader').classList.add('hidden');
+    }
 }
 function logout() { localStorage.removeItem('currentUser'); checkAuth(); }
 
@@ -334,7 +359,7 @@ function nav(page) {
     }
     else if (page === 'promoter_attendance') {
         title = t('prm_att');
-        content = `<div class="glass-card" style="text-align:center + '<div class="search-bar" style="margin-top:15px;"><button class="btn btn-danger" style="width:auto; padding:8px 15px;" onclick="deleteAllAttendanceApp(false)">مسح جميع البيانات 🗑️</button></div>';"><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
+        content = `<div class="glass-card" style="text-align:center;"><div class="search-bar" style="margin-top:15px; margin-bottom:15px;"><button class="btn btn-danger" style="width:auto; padding:8px 15px;" onclick="deleteAllAttendanceApp(false)">مسح جميع البيانات 🗑️</button></div><h3>${t('att_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('att_desc')}</p><div style="max-width:300px; margin:auto; margin-bottom:15px;"><label>صورة الحضور (Selfie) 📷</label><input type="file" id="attPhoto" class="input-box" accept="image/*" capture="user"></div><div class="grid-2" style="max-width:400px; margin:auto;"><button id="btnAtt1" class="btn btn-primary" onclick="markAttendance(1)">${t('shift_1')}</button><button id="btnAtt2" class="btn btn-primary" onclick="markAttendance(2)">${t('shift_2')}</button></div><div id="locStatus" style="margin-top:10px; font-size:0.8rem; color:var(--am);"></div></div><div class="glass-card" style="text-align:center; margin-top:20px;"><h3>${t('break_title')}</h3><p style="color:var(--tx2); margin-bottom:15px; font-size:0.9rem;">${t('break_desc')}</p><div class="grid-2" style="max-width:400px; margin:auto;"><div><button id="btnBreak1" class="btn btn-primary" onclick="toggleBreak(1)">${t('break_1_start')}</button><div id="timerBreak1" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div><div><button id="btnBreak2" class="btn btn-primary" onclick="toggleBreak(2)">${t('break_2_start')}</button><div id="timerBreak2" style="font-size:1.2rem; font-weight:bold; margin-top:5px; color:var(--am);"></div></div></div></div><div class="glass-card" style="margin-top:20px; overflow-x:auto;"><table id="myAttTable"></table></div>`;
         setTimeout(loadMyAttendance, 100);
     }
     else if (page === 'admin_sales') {
@@ -470,8 +495,12 @@ async function initPromoterSales() {
             select.innerHTML = `<option value="">اختر الصنف</option>`;
             cachedProducts.forEach(p => { select.innerHTML += `<option value="${p.itemCode}">${p.itemCode} - ${p.description} (${p.company || 'بدون شركة'})</option>`; });
         }
-        loadMySales();
-    } catch(err) { $('loader').classList.add('hidden'); }
+        await loadMySales();
+    } catch(err) {
+        console.error(err);
+    } finally {
+        $('loader').classList.add('hidden');
+    }
 }
 
 let html5QrcodeScanner = null;
@@ -553,23 +582,36 @@ async function submitSale() {
         let text = `فاتورة مبيعات:\nالشركة: ${userData.company}\nالصنف: ${c}\nالسعر: ${p}\nشكراً لتعاملكم!`;
         $('btnShareWA').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         loadMySales();
-    } catch(err) { toast(err.message, 'error'); $('loader').classList.add('hidden'); }
+    } catch(err) {
+        toast(err.message, 'error');
+    } finally {
+        $('loader').classList.add('hidden');
+    }
 }
 
 async function loadMySales() {
-    let tb = $('mySalesTable'); if(!tb) return;
+    let tb = $('mySalesTable');
+    if(!tb) {
+        $('loader').classList.add('hidden');
+        return;
+    }
     tb.innerHTML = `<tr><th>الكود</th><th>الوصف</th><th>السعر</th><th>صورة</th><th>طباعة</th></tr>`;
     try {
-        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(10).get();
+        let snap = await db.collection('sales').where('uid', '==', currentUser.uid).limit(20).get();
         let htmlAcc = "";
-        snap.docs.forEach(doc => {
-            let d = doc.data(); let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
+        let docs = snap.docs.map(d => d.data());
+        docs.sort((a, b) => ((b.date || '') + (b.time || '')).localeCompare((a.date || '') + (a.time || '')));
+        docs.slice(0, 10).forEach(d => {
+            let imgLink = d.imageUrl ? `<a href="${d.imageUrl}" target="_blank" style="color:var(--am);">عرض</a>` : '-';
             let printBtn = `<button class="btn btn-primary" style="padding:2px 8px; font-size:0.8rem;" onclick="printReceipt('${d.itemCode}', '${d.price}', '${d.date}')">🖨️</button>`;
             htmlAcc += `<tr><td>${d.itemCode}</td><td>${d.description}</td><td>${d.price}</td><td>${imgLink}</td><td>${printBtn}</td></tr>`;
         });
         tb.innerHTML += htmlAcc;
-    } catch(err) {}
-    $('loader').classList.add('hidden');
+    } catch(err) {
+        console.error(err);
+    } finally {
+        $('loader').classList.add('hidden');
+    }
 }
 
 function printReceipt(code, price, date) {
